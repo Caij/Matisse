@@ -126,6 +126,10 @@ public class MediaStoreCompat {
             return null;
         }
 
+        if (!tempFile.getParentFile().exists()) {
+            tempFile.getParentFile().mkdirs();
+        }
+
         return tempFile;
     }
 

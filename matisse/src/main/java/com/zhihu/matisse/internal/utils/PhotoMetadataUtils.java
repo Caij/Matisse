@@ -35,10 +35,14 @@ import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
 import com.zhihu.matisse.internal.entity.IncapableCause;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
 import java.text.DecimalFormat;
+
+import static android.media.ExifInterface.ORIENTATION_TRANSPOSE;
+import static android.media.ExifInterface.ORIENTATION_TRANSVERSE;
 
 public final class PhotoMetadataUtils {
     private static final String TAG = PhotoMetadataUtils.class.getSimpleName();
@@ -162,10 +166,26 @@ public final class PhotoMetadataUtils {
         }
         int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1);
         return orientation == ExifInterface.ORIENTATION_ROTATE_90
-                || orientation == ExifInterface.ORIENTATION_ROTATE_270;
+                || orientation == ExifInterface.ORIENTATION_ROTATE_270
+                || orientation == ORIENTATION_TRANSPOSE
+                || orientation == ORIENTATION_TRANSVERSE;
     }
 
     public static float getSizeInMB(long sizeInBytes) {
         return Float.valueOf(new DecimalFormat("0.0").format((float) sizeInBytes / 1024 / 1024));
+    }
+
+    public static boolean isLongImage(ContentResolver resolver, Uri uri) {
+        Point point = getBitmapBound(resolver, uri);
+        int width;
+        int height;
+        if (shouldRotate(resolver, uri)) {
+            width = point.y;
+            height = point.x;
+        }else {
+            width = point.x;
+            height = point.y;
+        }
+        return height / width > 3;
     }
 }

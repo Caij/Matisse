@@ -41,7 +41,7 @@
             android:textSize="20sp"/>
     </android.support.v7.widget.Toolbar>
 
-    <FrameLayout
+    <RelativeLayout
         android:id="@+id/bottom_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -61,16 +61,24 @@
             android:textColor="?attr/bottomToolbar.preview.textColor"
             android:textSize="16sp"/>
 
+        <android.support.v7.widget.AppCompatCheckBox
+            android:id="@+id/cb_source"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="原图"
+            android:layout_centerInParent="true"
+            android:buttonTint="?attr/bottomToolbar.apply.textColor"/>
+
         <TextView
             android:id="@+id/button_apply"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
+            android:layout_alignParentRight="true"
             android:foreground="?selectableItemBackground"
             android:padding="16dp"
             android:textColor="?attr/bottomToolbar.apply.textColor"
             android:textSize="16sp"/>
-    </FrameLayout>
+    </RelativeLayout>
 
     <FrameLayout
         android:id="@+id/container"

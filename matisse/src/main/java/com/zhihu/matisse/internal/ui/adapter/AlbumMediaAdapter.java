@@ -114,7 +114,6 @@ public class AlbumMediaAdapter extends
 
             final Item item = Item.valueOf(cursor);
             mediaViewHolder.mMediaGrid.preBindMedia(new MediaGrid.PreBindInfo(
-                    getImageResize(mediaViewHolder.mMediaGrid.getContext()),
                     mPlaceholder,
                     mSelectionSpec.countable,
                     holder
@@ -240,19 +239,6 @@ public class AlbumMediaAdapter extends
                 }
             }
         }
-    }
-
-    private int getImageResize(Context context) {
-        if (mImageResize == 0) {
-            RecyclerView.LayoutManager lm = mRecyclerView.getLayoutManager();
-            int spanCount = ((GridLayoutManager) lm).getSpanCount();
-            int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
-            int availableWidth = screenWidth - context.getResources().getDimensionPixelSize(
-                    R.dimen.media_grid_spacing) * (spanCount - 1);
-            mImageResize = availableWidth / spanCount;
-            mImageResize = (int) (mImageResize * mSelectionSpec.thumbnailScale);
-        }
-        return mImageResize;
     }
 
     public interface CheckStateListener {

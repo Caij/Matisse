@@ -47,7 +47,7 @@ public class Item implements Parcelable {
     public final long size;
     public final long duration; // only for video, in ms
 
-    private Item(long id, String mimeType, long size, long duration) {
+    public Item(long id, String mimeType, long size, long duration) {
         this.id = id;
         this.mimeType = mimeType;
         Uri contentUri;
@@ -132,8 +132,7 @@ public class Item implements Parcelable {
         }
 
         Item other = (Item) obj;
-        return id == other.id
-                && (mimeType != null && mimeType.equals(other.mimeType)
+        return (mimeType != null && mimeType.equals(other.mimeType)
                     || (mimeType == null && other.mimeType == null))
                 && (uri != null && uri.equals(other.uri)
                     || (uri == null && other.uri == null))

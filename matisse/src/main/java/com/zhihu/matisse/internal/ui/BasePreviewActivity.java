@@ -21,8 +21,10 @@ import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatCheckBox;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.zhihu.matisse.R;
@@ -34,6 +36,10 @@ import com.zhihu.matisse.internal.ui.adapter.PreviewPagerAdapter;
 import com.zhihu.matisse.internal.ui.widget.CheckView;
 import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
 import com.zhihu.matisse.internal.utils.Platform;
+import com.zhihu.matisse.internal.utils.SizeUtils;
+
+import java.util.ArrayList;
+import java.util.List;
 
 public abstract class BasePreviewActivity extends AppCompatActivity implements View.OnClickListener,
         ViewPager.OnPageChangeListener {
@@ -41,6 +47,7 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
     public static final String EXTRA_DEFAULT_BUNDLE = "extra_default_bundle";
     public static final String EXTRA_RESULT_BUNDLE = "extra_result_bundle";
     public static final String EXTRA_RESULT_APPLY = "extra_result_apply";
+    public static final String EXTRA_RESULT_SOURCE = "extra_result_source";
 
     protected final SelectedItemCollection mSelectedCollection = new SelectedItemCollection(this);
     protected SelectionSpec mSpec;
@@ -51,7 +58,7 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
     protected CheckView mCheckView;
     protected TextView mButtonBack;
     protected TextView mButtonApply;
-    protected TextView mSize;
+    private AppCompatCheckBox mCbSource;
 
     protected int mPreviousPos = -1;
 
@@ -69,6 +76,19 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
             setRequestedOrientation(mSpec.orientation);
         }
 
+        mCbSource = findViewById(R.id.cb_source);
+        if (mSpec.source != null && mSpec.source.isHaveSource) {
+            mCbSource.setVisibility(View.VISIBLE);
+            mCbSource.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    showCheckFileSize();
+                }
+            });
+        }else {
+            mCbSource.setVisibility(View.GONE);
+        }
+
         if (savedInstanceState == null) {
             mSelectedCollection.onCreate(getIntent().getBundleExtra(EXTRA_DEFAULT_BUNDLE));
         } else {
@@ -77,7 +97,6 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
 
         mButtonBack = (TextView) findViewById(R.id.button_back);
         mButtonApply = (TextView) findViewById(R.id.button_apply);
-        mSize = (TextView) findViewById(R.id.size);
         mButtonBack.setOnClickListener(this);
         mButtonApply.setOnClickListener(this);
 
@@ -111,9 +130,25 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
                     }
                 }
                 updateApplyButton();
+
+                if (mCbSource.isChecked()) {
+                    showCheckFileSize();
+                }
             }
         });
         updateApplyButton();
+
+        boolean isCheck = getIntent().getBooleanExtra(EXTRA_RESULT_SOURCE, false);
+        mCbSource.setChecked(isCheck);
+    }
+
+    private void showCheckFileSize() {
+        List<Item> selectedItems = mSelectedCollection.asList();
+        if (selectedItems != null && !selectedItems.isEmpty() && mCbSource.isChecked()) {
+            mCbSource.setText(getString(R.string.source) + SizeUtils.getSize(selectedItems));
+        }else {
+            mCbSource.setText(getString(R.string.source));
+        }
     }
 
     @Override
@@ -167,7 +202,6 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
                     mCheckView.setEnabled(!mSelectedCollection.maxSelectableReached());
                 }
             }
-            updateSize(item);
         }
         mPreviousPos = position;
     }
@@ -191,19 +225,11 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
         }
     }
 
-    protected void updateSize(Item item) {
-        if (item.isGif()) {
-            mSize.setVisibility(View.VISIBLE);
-            mSize.setText(PhotoMetadataUtils.getSizeInMB(item.size) + "M");
-        } else {
-            mSize.setVisibility(View.GONE);
-        }
-    }
-
     protected void sendBackResult(boolean apply) {
         Intent intent = new Intent();
         intent.putExtra(EXTRA_RESULT_BUNDLE, mSelectedCollection.getDataWithBundle());
         intent.putExtra(EXTRA_RESULT_APPLY, apply);
+        intent.putExtra(EXTRA_RESULT_SOURCE, mCbSource.isChecked());
         setResult(Activity.RESULT_OK, intent);
     }
 

@@ -47,6 +47,8 @@ public final class SelectionSpec {
     public int gridExpectedSize;
     public float thumbnailScale;
     public ImageEngine imageEngine;
+    public Source source; //是否可选原图
+    public List<Item> oldItems; //是否可选原图
 
     private SelectionSpec() {
     }
@@ -78,6 +80,8 @@ public final class SelectionSpec {
         gridExpectedSize = 0;
         thumbnailScale = 0.5f;
         imageEngine = new GlideEngine();
+        source = null;
+        oldItems = null;
     }
 
     public boolean singleSelectionModeEnabled() {

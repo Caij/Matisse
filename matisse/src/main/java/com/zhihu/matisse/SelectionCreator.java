@@ -28,12 +28,15 @@ import android.support.v4.app.Fragment;
 import com.zhihu.matisse.engine.ImageEngine;
 import com.zhihu.matisse.filter.Filter;
 import com.zhihu.matisse.internal.entity.CaptureStrategy;
+import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
+import com.zhihu.matisse.internal.entity.Source;
 import com.zhihu.matisse.ui.MatisseActivity;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Set;
 
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_BEHIND;
@@ -278,6 +281,26 @@ public final class SelectionCreator {
      */
     public SelectionCreator imageEngine(ImageEngine imageEngine) {
         mSelectionSpec.imageEngine = imageEngine;
+        return this;
+    }
+
+    /**
+     *
+     * @param isHaveSource is select image source
+     * @return {@link SelectionCreator} for fluent API.
+     */
+    public SelectionCreator source(Source source) {
+        mSelectionSpec.source = source;
+        return this;
+    }
+
+    /**
+     *
+     * @param isHaveSource is select image source
+     * @return {@link SelectionCreator} for fluent API.
+     */
+    public SelectionCreator oldItems(List<Item> items) {
+        mSelectionSpec.oldItems = items;
         return this;
     }
 

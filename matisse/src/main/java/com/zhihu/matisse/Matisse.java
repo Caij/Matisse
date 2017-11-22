@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
+import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.ui.MatisseActivity;
 
 import java.lang.ref.WeakReference;
@@ -81,19 +82,13 @@ public final class Matisse {
      *             {@link Fragment#onActivityResult(int, int, Intent)}.
      * @return User selected media' {@link Uri} list.
      */
-    public static List<Uri> obtainResult(Intent data) {
+    public static List<Item> obtainResult(Intent data) {
         return data.getParcelableArrayListExtra(MatisseActivity.EXTRA_RESULT_SELECTION);
     }
 
-    /**
-     * Obtain user selected media path list in the starting Activity or Fragment.
-     *
-     * @param data Intent passed by {@link Activity#onActivityResult(int, int, Intent)} or
-     *             {@link Fragment#onActivityResult(int, int, Intent)}.
-     * @return User selected media path list.
-     */
-    public static List<String> obtainPathResult(Intent data) {
-        return data.getStringArrayListExtra(MatisseActivity.EXTRA_RESULT_SELECTION_PATH);
+
+    public static boolean obtainIsSourceResult(Intent data) {
+        return data.getBooleanExtra(MatisseActivity.EXTRA_RESULT_SOURCE, false);
     }
 
     /**

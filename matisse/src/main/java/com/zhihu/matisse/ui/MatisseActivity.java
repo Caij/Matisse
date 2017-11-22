@@ -16,6 +16,7 @@
 package com.zhihu.matisse.ui;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.res.TypedArray;
 import android.database.Cursor;
@@ -26,20 +27,25 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
+import android.os.Parcelable;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.Toolbar;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.CompoundButton;
 import android.widget.TextView;
 
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
+import com.zhihu.matisse.internal.loader.AlbumMediaLoader;
 import com.zhihu.matisse.internal.model.AlbumCollection;
 import com.zhihu.matisse.internal.model.SelectedItemCollection;
 import com.zhihu.matisse.internal.ui.AlbumPreviewActivity;
@@ -51,8 +57,11 @@ import com.zhihu.matisse.internal.ui.adapter.AlbumsAdapter;
 import com.zhihu.matisse.internal.ui.widget.AlbumsSpinner;
 import com.zhihu.matisse.internal.utils.MediaStoreCompat;
 import com.zhihu.matisse.internal.utils.PathUtils;
+import com.zhihu.matisse.internal.utils.SizeUtils;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Main Activity to display albums and media content (images/videos) in each album
@@ -65,7 +74,7 @@ public class MatisseActivity extends AppCompatActivity implements
         AlbumMediaAdapter.OnPhotoCapture {
 
     public static final String EXTRA_RESULT_SELECTION = "extra_result_selection";
-    public static final String EXTRA_RESULT_SELECTION_PATH = "extra_result_selection_path";
+    public static final String EXTRA_RESULT_SOURCE = "extra_result_source";
     private static final int REQUEST_CODE_PREVIEW = 23;
     private static final int REQUEST_CODE_CAPTURE = 24;
     private final AlbumCollection mAlbumCollection = new AlbumCollection();
@@ -79,6 +88,7 @@ public class MatisseActivity extends AppCompatActivity implements
     private TextView mButtonApply;
     private View mContainer;
     private View mEmptyView;
+    private AppCompatCheckBox mCbSource;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -119,7 +129,7 @@ public class MatisseActivity extends AppCompatActivity implements
         mEmptyView = findViewById(R.id.empty_view);
 
         mSelectedCollection.onCreate(savedInstanceState);
-        updateBottomToolbar();
+
 
         mAlbumsAdapter = new AlbumsAdapter(this, null, false);
         mAlbumsSpinner = new AlbumsSpinner(this);
@@ -130,6 +140,40 @@ public class MatisseActivity extends AppCompatActivity implements
         mAlbumCollection.onCreate(this, this);
         mAlbumCollection.onRestoreInstanceState(savedInstanceState);
         mAlbumCollection.loadAlbums();
+
+        if (mSpec.oldItems != null && !mSpec.oldItems.isEmpty()) {
+            for (Item item : mSpec.oldItems) {
+                mSelectedCollection.add(item);
+            }
+        }
+
+        mCbSource = findViewById(R.id.cb_source);
+        if (mSpec.source != null && mSpec.source.isHaveSource) {
+            mCbSource.setVisibility(View.VISIBLE);
+            mCbSource.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+                @Override
+                public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                    showCheckFileSize();
+                }
+            });
+
+            if (mSpec.source.isCheckSource) {
+                mCbSource.setChecked(true);
+            }
+        }else {
+            mCbSource.setVisibility(View.GONE);
+        }
+
+        updateBottomToolbar();
+    }
+
+    private void showCheckFileSize() {
+        List<Item> selectedItems = mSelectedCollection.asList();
+        if (selectedItems != null && !selectedItems.isEmpty() && mCbSource.isChecked()) {
+            mCbSource.setText(getString(R.string.source) + SizeUtils.getSize(selectedItems));
+        }else {
+            mCbSource.setText(getString(R.string.source));
+        }
     }
 
     @Override
@@ -169,20 +213,13 @@ public class MatisseActivity extends AppCompatActivity implements
         if (requestCode == REQUEST_CODE_PREVIEW) {
             Bundle resultBundle = data.getBundleExtra(BasePreviewActivity.EXTRA_RESULT_BUNDLE);
             ArrayList<Item> selected = resultBundle.getParcelableArrayList(SelectedItemCollection.STATE_SELECTION);
+            boolean isCheckSource = data.getBooleanExtra(BasePreviewActivity.EXTRA_RESULT_SOURCE, false);
             int collectionType = resultBundle.getInt(SelectedItemCollection.STATE_COLLECTION_TYPE,
                     SelectedItemCollection.COLLECTION_UNDEFINED);
             if (data.getBooleanExtra(BasePreviewActivity.EXTRA_RESULT_APPLY, false)) {
                 Intent result = new Intent();
-                ArrayList<Uri> selectedUris = new ArrayList<>();
-                ArrayList<String> selectedPaths = new ArrayList<>();
-                if (selected != null) {
-                    for (Item item : selected) {
-                        selectedUris.add(item.getContentUri());
-                        selectedPaths.add(PathUtils.getPath(this, item.getContentUri()));
-                    }
-                }
-                result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedUris);
-                result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPaths);
+                result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selected);
+                result.putExtra(EXTRA_RESULT_SOURCE, isCheckSource);
                 setResult(RESULT_OK, result);
                 finish();
             } else {
@@ -192,19 +229,24 @@ public class MatisseActivity extends AppCompatActivity implements
                 if (mediaSelectionFragment instanceof MediaSelectionFragment) {
                     ((MediaSelectionFragment) mediaSelectionFragment).refreshMediaGrid();
                 }
+
+                mCbSource.setChecked(isCheckSource);
+
                 updateBottomToolbar();
             }
         } else if (requestCode == REQUEST_CODE_CAPTURE) {
             // Just pass the data back to previous calling Activity.
             Uri contentUri = mMediaStoreCompat.getCurrentPhotoUri();
             String path = mMediaStoreCompat.getCurrentPhotoPath();
-            ArrayList<Uri> selected = new ArrayList<>();
-            selected.add(contentUri);
-            ArrayList<String> selectedPath = new ArrayList<>();
-            selectedPath.add(path);
+
+            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(path))));
+
+            Item item = new Item(0, "png", new File(path).length(), 0);
+            ArrayList<Item> selectedItems = new ArrayList<>();
+            selectedItems.add(item);
             Intent result = new Intent();
-            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selected);
-            result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPath);
+            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedItems);
+            result.putExtra(EXTRA_RESULT_SOURCE, mCbSource.isChecked());
             setResult(RESULT_OK, result);
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
                 MatisseActivity.this.revokeUriPermission(contentUri,
@@ -235,13 +277,13 @@ public class MatisseActivity extends AppCompatActivity implements
         if (v.getId() == R.id.button_preview) {
             Intent intent = new Intent(this, SelectedPreviewActivity.class);
             intent.putExtra(BasePreviewActivity.EXTRA_DEFAULT_BUNDLE, mSelectedCollection.getDataWithBundle());
+            intent.putExtra(BasePreviewActivity.EXTRA_RESULT_SOURCE, mCbSource.isChecked());
             startActivityForResult(intent, REQUEST_CODE_PREVIEW);
         } else if (v.getId() == R.id.button_apply) {
             Intent result = new Intent();
-            ArrayList<Uri> selectedUris = (ArrayList<Uri>) mSelectedCollection.asListOfUri();
+            ArrayList<Item> selectedUris = (ArrayList<Item>) mSelectedCollection.asList();
             result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedUris);
-            ArrayList<String> selectedPaths = (ArrayList<String>) mSelectedCollection.asListOfString();
-            result.putStringArrayListExtra(EXTRA_RESULT_SELECTION_PATH, selectedPaths);
+            result.putExtra(EXTRA_RESULT_SOURCE, mCbSource.isChecked());
             setResult(RESULT_OK, result);
             finish();
         }
@@ -308,6 +350,10 @@ public class MatisseActivity extends AppCompatActivity implements
     public void onUpdate() {
         // notify bottom toolbar that check state changed.
         updateBottomToolbar();
+
+        if (mCbSource.isChecked()) {
+            showCheckFileSize();
+        }
     }
 
     @Override
@@ -316,6 +362,7 @@ public class MatisseActivity extends AppCompatActivity implements
         intent.putExtra(AlbumPreviewActivity.EXTRA_ALBUM, album);
         intent.putExtra(AlbumPreviewActivity.EXTRA_ITEM, item);
         intent.putExtra(BasePreviewActivity.EXTRA_DEFAULT_BUNDLE, mSelectedCollection.getDataWithBundle());
+        intent.putExtra(BasePreviewActivity.EXTRA_RESULT_SOURCE, mCbSource.isChecked());
         startActivityForResult(intent, REQUEST_CODE_PREVIEW);
     }
 

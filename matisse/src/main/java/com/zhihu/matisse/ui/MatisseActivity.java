@@ -15,9 +15,11 @@
  */
 package com.zhihu.matisse.ui;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.PorterDuff;
@@ -29,7 +31,9 @@ import android.os.Handler;
 import android.os.Looper;
 import android.os.Parcelable;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.annotation.RequiresApi;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
@@ -43,6 +47,7 @@ import android.widget.AdapterView;
 import android.widget.CompoundButton;
 import android.widget.TextView;
 
+import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
@@ -74,6 +79,8 @@ public class MatisseActivity extends AppCompatActivity implements
         MediaSelectionFragment.SelectionProvider, View.OnClickListener,
         AlbumMediaAdapter.CheckStateListener, AlbumMediaAdapter.OnMediaClickListener,
         AlbumMediaAdapter.OnPhotoCapture {
+
+    private static final int REQUEST_CAMERA_PERMISSION_CODE = 1000;
 
     public static final String EXTRA_RESULT_SELECTION = "extra_result_selection";
     public static final String EXTRA_RESULT_SOURCE = "extra_result_source";
@@ -175,18 +182,35 @@ public class MatisseActivity extends AppCompatActivity implements
             toolbar.setBackgroundColor(mSpec.theme.toolbarColor);
             tvSelectedAlbum.setTextColor(mSpec.theme.toolbarActionColor);
             navigationIcon.setColorFilter(mSpec.theme.toolbarActionColor, PorterDuff.Mode.SRC_IN);
-            findViewById(R.id.bottom_toolbar).setBackgroundColor(mSpec.theme.bottombarBackground);
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getWindow().setStatusBarColor(mSpec.theme.toolbarColor);
-            }
-
             Drawable drawable = ContextCompat.getDrawable(this, R.drawable.ic_arrow_drop_down_white_24dp);
             drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
             drawable.setColorFilter(mSpec.theme.toolbarActionColor, PorterDuff.Mode.SRC_IN);
             tvSelectedAlbum.setCompoundDrawables(null, null, drawable, null);
+
+            findViewById(R.id.bottom_toolbar).setBackgroundColor(mSpec.theme.bottombarBackground);
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(mSpec.theme.toolbarColor);
+            }
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                setStatusModeDefault(this, mSpec.theme.isWindowLightStatusBar);
+            }
         }
 
         updateBottomToolbar();
+    }
+
+    @RequiresApi(api = Build.VERSION_CODES.M)
+    private static void setStatusModeDefault(Activity activity, boolean windowLightStatusBar) {
+        View decor = activity.getWindow().getDecorView();
+        int ui = decor.getSystemUiVisibility();
+        if (windowLightStatusBar) {
+            ui |= View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        } else {
+            ui &= ~View.SYSTEM_UI_FLAG_LIGHT_STATUS_BAR;
+        }
+        decor.setSystemUiVisibility(ui);
     }
 
     private void showCheckFileSize() {
@@ -263,7 +287,7 @@ public class MatisseActivity extends AppCompatActivity implements
 
             sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(path))));
 
-            Item item = new Item(0, "png", new File(path).length(), 0);
+            Item item = new Item(Item.ITEM_ID_CAPTURE_IMAGE, MimeType.JPEG.toString(), new File(path).length(), 0);
             ArrayList<Item> selectedItems = new ArrayList<>();
             selectedItems.add(item);
             Intent result = new Intent();
@@ -396,7 +420,24 @@ public class MatisseActivity extends AppCompatActivity implements
     @Override
     public void capture() {
         if (mMediaStoreCompat != null) {
-            mMediaStoreCompat.dispatchCaptureIntent(this, REQUEST_CODE_CAPTURE);
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
+                mMediaStoreCompat.dispatchCaptureIntent(this, REQUEST_CODE_CAPTURE);
+            }else {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                    requestPermissions(new String[]{Manifest.permission.CAMERA}, REQUEST_CAMERA_PERMISSION_CODE);
+                }
+            }
+
+        }
+    }
+
+    @Override
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+        if (requestCode == REQUEST_CAMERA_PERMISSION_CODE) {
+            if (grantResults != null && grantResults.length > 0) {
+                mMediaStoreCompat.dispatchCaptureIntent(this, REQUEST_CODE_CAPTURE);
+            }
         }
     }
 }

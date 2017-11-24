@@ -96,19 +96,20 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
                                             .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
                                             .thumbnailScale(0.85f)
                                             .imageEngine(new GlideEngine())
-                                            .theme(new Theme(R.style.Matisse_Zhihu, ContextCompat.getColor(SampleActivity.this, R.color.white), ContextCompat.getColor(SampleActivity.this, R.color.black), ContextCompat.getColor(SampleActivity.this, R.color.white)))
+                                            .theme(new Theme(R.style.Matisse_Zhihu, ContextCompat.getColor(SampleActivity.this, R.color.white), ContextCompat.getColor(SampleActivity.this, R.color.black), ContextCompat.getColor(SampleActivity.this, R.color.white), true))
                                             .source(new Source(true, isSource))
                                             .oldItems(items)
                                             .forResult(REQUEST_CODE_CHOOSE);
                                     break;
                                 case R.id.dracula:
-//                                    Matisse.from(SampleActivity.this)
-//                                            .choose(MimeType.ofImage())
-//                                            .theme(R.style.Matisse_Dracula)
-//                                            .countable(false)
-//                                            .maxSelectable(9)
-//                                            .imageEngine(new GlideEngine())
-//                                            .forResult(REQUEST_CODE_CHOOSE);
+                                    Theme theme = new Theme(R.style.Matisse_Dracula, ContextCompat.getColor(SampleActivity.this, R.color.black), ContextCompat.getColor(SampleActivity.this, R.color.white), ContextCompat.getColor(SampleActivity.this, R.color.black), false);
+                                    Matisse.from(SampleActivity.this)
+                                            .choose(MimeType.ofImage())
+                                            .theme(theme)
+                                            .countable(false)
+                                            .maxSelectable(9)
+                                            .imageEngine(new GlideEngine())
+                                            .forResult(REQUEST_CODE_CHOOSE);
                                     break;
                             }
                             mAdapter.setData(null, null);

@@ -40,6 +40,7 @@ public class Item implements Parcelable {
         }
     };
     public static final long ITEM_ID_CAPTURE = -1;
+    public static final long ITEM_ID_CAPTURE_IMAGE = -2;
     public static final String ITEM_DISPLAY_NAME_CAPTURE = "Capture";
     public final long id;
     public final String mimeType;
@@ -132,7 +133,16 @@ public class Item implements Parcelable {
         }
 
         Item other = (Item) obj;
-        return (mimeType != null && mimeType.equals(other.mimeType)
+
+        if (other.id == ITEM_ID_CAPTURE_IMAGE || id == ITEM_ID_CAPTURE_IMAGE) {
+            return (mimeType != null && mimeType.equals(other.mimeType)
+                        || (mimeType == null && other.mimeType == null))
+                    && size == other.size
+                    && duration == other.duration;
+        }
+
+        return id == other.id
+                && (mimeType != null && mimeType.equals(other.mimeType)
                     || (mimeType == null && other.mimeType == null))
                 && (uri != null && uri.equals(other.uri)
                     || (uri == null && other.uri == null))

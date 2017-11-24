@@ -20,10 +20,13 @@ public class Theme {
     @ColorInt
     public int bottombarBackground;
 
-    public Theme(int themeId, int toolbarColor, int toolbarActionColor, int bottombarBackground) {
+    public boolean isWindowLightStatusBar;
+
+    public Theme(int themeId, int toolbarColor, int toolbarActionColor, int bottombarBackground, boolean isWindowLightStatusBar) {
         this.themeId = themeId;
         this.toolbarColor = toolbarColor;
         this.toolbarActionColor = toolbarActionColor;
         this.bottombarBackground = bottombarBackground;
+        this.isWindowLightStatusBar = isWindowLightStatusBar;
     }
 }

@@ -123,7 +123,7 @@ public final class SelectionCreator {
      * 2. com.zhihu.matisse.R.style.Matisse_Dracula
      * you can define a custom theme derived from the above ones or other themes.
      *
-     * @param themeId theme resource id. Default value is com.zhihu.matisse.R.style.Matisse_Zhihu.
+     * @param theme theme resource id. Default value is com.zhihu.matisse.R.style.Matisse_Zhihu.
      * @return {@link SelectionCreator} for fluent API.
      */
     public SelectionCreator theme(Theme theme) {
@@ -274,7 +274,6 @@ public final class SelectionCreator {
      * <p>
      * There are two built-in image engines:
      * 1. {@link com.zhihu.matisse.engine.impl.GlideEngine}
-     * 2. {@link com.zhihu.matisse.engine.impl.PicassoEngine}
      * And you can implement your own image engine.
      *
      * @param imageEngine {@link ImageEngine}
@@ -287,7 +286,7 @@ public final class SelectionCreator {
 
     /**
      *
-     * @param isHaveSource is select image source
+     * @param source is select image source
      * @return {@link SelectionCreator} for fluent API.
      */
     public SelectionCreator source(Source source) {
@@ -295,11 +294,7 @@ public final class SelectionCreator {
         return this;
     }
 
-    /**
-     *
-     * @param isHaveSource is select image source
-     * @return {@link SelectionCreator} for fluent API.
-     */
+
     public SelectionCreator oldItems(List<Item> items) {
         mSelectionSpec.oldItems = items;
         return this;

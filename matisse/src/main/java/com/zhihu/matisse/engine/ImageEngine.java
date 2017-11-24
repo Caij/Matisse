@@ -22,7 +22,6 @@ import android.widget.ImageView;
 
 /**
  * Image loader interface. There are predefined {@link com.zhihu.matisse.engine.impl.GlideEngine}
- * and {@link com.zhihu.matisse.engine.impl.PicassoEngine}.
  */
 @SuppressWarnings("unused")
 public interface ImageEngine {

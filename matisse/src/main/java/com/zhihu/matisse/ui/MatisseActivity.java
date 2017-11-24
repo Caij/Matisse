@@ -31,6 +31,7 @@ import android.os.Parcelable;
 import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatCheckBox;
@@ -95,7 +96,11 @@ public class MatisseActivity extends AppCompatActivity implements
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         // programmatically set theme before super.onCreate()
         mSpec = SelectionSpec.getInstance();
-        setTheme(mSpec.themeId);
+        if (mSpec.theme != null) {
+            setTheme(mSpec.theme.themeId);
+        }else {
+            setTheme(R.style.Matisse_Zhihu);
+        }
         super.onCreate(savedInstanceState);
 
         setContentView(R.layout.activity_matisse);
@@ -135,7 +140,8 @@ public class MatisseActivity extends AppCompatActivity implements
         mAlbumsAdapter = new AlbumsAdapter(this, null, false);
         mAlbumsSpinner = new AlbumsSpinner(this);
         mAlbumsSpinner.setOnItemSelectedListener(this);
-        mAlbumsSpinner.setSelectedTextView((TextView) findViewById(R.id.selected_album));
+        TextView tvSelectedAlbum = (TextView) findViewById(R.id.selected_album);
+        mAlbumsSpinner.setSelectedTextView(tvSelectedAlbum);
         mAlbumsSpinner.setPopupAnchorView(findViewById(R.id.toolbar));
         mAlbumsSpinner.setAdapter(mAlbumsAdapter);
         mAlbumCollection.onCreate(this, this);
@@ -163,6 +169,21 @@ public class MatisseActivity extends AppCompatActivity implements
             }
         }else {
             mCbSource.setVisibility(View.GONE);
+        }
+
+        if (mSpec.theme != null) {
+            toolbar.setBackgroundColor(mSpec.theme.toolbarColor);
+            tvSelectedAlbum.setTextColor(mSpec.theme.toolbarActionColor);
+            navigationIcon.setColorFilter(mSpec.theme.toolbarActionColor, PorterDuff.Mode.SRC_IN);
+            findViewById(R.id.bottom_toolbar).setBackgroundColor(mSpec.theme.bottombarBackground);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
+                getWindow().setStatusBarColor(mSpec.theme.toolbarColor);
+            }
+
+            Drawable drawable = ContextCompat.getDrawable(this, R.drawable.ic_arrow_drop_down_white_24dp);
+            drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
+            drawable.setColorFilter(mSpec.theme.toolbarActionColor, PorterDuff.Mode.SRC_IN);
+            tvSelectedAlbum.setCompoundDrawables(null, null, drawable, null);
         }
 
         updateBottomToolbar();

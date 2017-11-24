@@ -33,8 +33,7 @@ public final class SelectionSpec {
     public Set<MimeType> mimeTypeSet;
     public boolean mediaTypeExclusive;
     public boolean showSingleMediaType;
-    @StyleRes
-    public int themeId;
+    public Theme theme;
     public int orientation;
     public boolean countable;
     public int maxSelectable;
@@ -67,7 +66,7 @@ public final class SelectionSpec {
         mimeTypeSet = null;
         mediaTypeExclusive = true;
         showSingleMediaType = false;
-        themeId = R.style.Matisse_Zhihu;
+        theme = null;
         orientation = 0;
         countable = false;
         maxSelectable = 1;

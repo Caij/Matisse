@@ -20,6 +20,7 @@ import android.content.Intent;
 import android.content.pm.ActivityInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -38,6 +39,7 @@ import com.zhihu.matisse.filter.Filter;
 import com.zhihu.matisse.internal.entity.CaptureStrategy;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.Source;
+import com.zhihu.matisse.internal.entity.Theme;
 
 import java.util.List;
 
@@ -94,18 +96,19 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
                                             .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
                                             .thumbnailScale(0.85f)
                                             .imageEngine(new GlideEngine())
+                                            .theme(new Theme(R.style.Matisse_Zhihu, ContextCompat.getColor(SampleActivity.this, R.color.white), ContextCompat.getColor(SampleActivity.this, R.color.black), ContextCompat.getColor(SampleActivity.this, R.color.white)))
                                             .source(new Source(true, isSource))
                                             .oldItems(items)
                                             .forResult(REQUEST_CODE_CHOOSE);
                                     break;
                                 case R.id.dracula:
-                                    Matisse.from(SampleActivity.this)
-                                            .choose(MimeType.ofImage())
-                                            .theme(R.style.Matisse_Dracula)
-                                            .countable(false)
-                                            .maxSelectable(9)
-                                            .imageEngine(new GlideEngine())
-                                            .forResult(REQUEST_CODE_CHOOSE);
+//                                    Matisse.from(SampleActivity.this)
+//                                            .choose(MimeType.ofImage())
+//                                            .theme(R.style.Matisse_Dracula)
+//                                            .countable(false)
+//                                            .maxSelectable(9)
+//                                            .imageEngine(new GlideEngine())
+//                                            .forResult(REQUEST_CODE_CHOOSE);
                                     break;
                             }
                             mAdapter.setData(null, null);

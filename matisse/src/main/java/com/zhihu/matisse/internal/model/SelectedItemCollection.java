@@ -55,7 +55,7 @@ public class SelectedItemCollection {
      */
     public static final int COLLECTION_MIXED = COLLECTION_IMAGE | COLLECTION_VIDEO;
     private final Context mContext;
-    private Set<Item> mItems;
+    private ArrayList<Item> mItems;
     private int mCollectionType = COLLECTION_UNDEFINED;
 
     public SelectedItemCollection(Context context) {
@@ -64,10 +64,10 @@ public class SelectedItemCollection {
 
     public void onCreate(Bundle bundle) {
         if (bundle == null) {
-            mItems = new LinkedHashSet<>();
+            mItems = new ArrayList<>();
         } else {
             List<Item> saved = bundle.getParcelableArrayList(STATE_SELECTION);
-            mItems = new LinkedHashSet<>(saved);
+            mItems = new ArrayList<>(saved);
             mCollectionType = bundle.getInt(STATE_COLLECTION_TYPE, COLLECTION_UNDEFINED);
         }
     }
@@ -77,13 +77,13 @@ public class SelectedItemCollection {
     }
 
     public void onSaveInstanceState(Bundle outState) {
-        outState.putParcelableArrayList(STATE_SELECTION, new ArrayList<>(mItems));
+        outState.putParcelableArrayList(STATE_SELECTION, mItems);
         outState.putInt(STATE_COLLECTION_TYPE, mCollectionType);
     }
 
     public Bundle getDataWithBundle() {
         Bundle bundle = new Bundle();
-        bundle.putParcelableArrayList(STATE_SELECTION, new ArrayList<>(mItems));
+        bundle.putParcelableArrayList(STATE_SELECTION, mItems);
         bundle.putInt(STATE_COLLECTION_TYPE, mCollectionType);
         return bundle;
     }
@@ -245,7 +245,7 @@ public class SelectedItemCollection {
     }
 
     public int checkedNumOf(Item item) {
-        int index = new ArrayList<>(mItems).indexOf(item);
+        int index = mItems.indexOf(item);
         return index == -1 ? CheckView.UNCHECKED : index + 1;
     }
 }

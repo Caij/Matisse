@@ -31,6 +31,7 @@ import com.zhihu.matisse.internal.entity.CaptureStrategy;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
 import com.zhihu.matisse.internal.entity.Source;
+import com.zhihu.matisse.internal.entity.Theme;
 import com.zhihu.matisse.ui.MatisseActivity;
 
 import java.lang.annotation.Retention;
@@ -125,8 +126,8 @@ public final class SelectionCreator {
      * @param themeId theme resource id. Default value is com.zhihu.matisse.R.style.Matisse_Zhihu.
      * @return {@link SelectionCreator} for fluent API.
      */
-    public SelectionCreator theme(@StyleRes int themeId) {
-        mSelectionSpec.themeId = themeId;
+    public SelectionCreator theme(Theme theme) {
+        mSelectionSpec.theme = theme;
         return this;
     }
 

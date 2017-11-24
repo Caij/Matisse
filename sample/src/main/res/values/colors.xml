@@ -16,4 +16,7 @@
   -->
 <resources>
     <color name="list_bg">#3B3B3B</color>
+
+    <color name="white">#ffffff</color>
+    <color name="black">#000000</color>
 </resources>

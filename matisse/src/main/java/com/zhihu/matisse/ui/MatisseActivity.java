@@ -190,7 +190,7 @@ public class MatisseActivity extends AppCompatActivity implements
             findViewById(R.id.bottom_toolbar).setBackgroundColor(mSpec.theme.bottombarBackground);
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-                getWindow().setStatusBarColor(mSpec.theme.toolbarColor);
+                getWindow().setStatusBarColor(mSpec.theme.statusColor);
             }
 
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

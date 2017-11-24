@@ -14,6 +14,8 @@ public class Theme {
     @StyleRes
     public int themeId = R.style.Matisse_Zhihu;
     @ColorInt
+    public int statusColor;
+    @ColorInt
     public int toolbarColor;
     @ColorInt
     public int toolbarActionColor;
@@ -22,8 +24,9 @@ public class Theme {
 
     public boolean isWindowLightStatusBar;
 
-    public Theme(int themeId, int toolbarColor, int toolbarActionColor, int bottombarBackground, boolean isWindowLightStatusBar) {
+    public Theme(int themeId, int statusColor, int toolbarColor, int toolbarActionColor, int bottombarBackground, boolean isWindowLightStatusBar) {
         this.themeId = themeId;
+        this.statusColor = statusColor;
         this.toolbarColor = toolbarColor;
         this.toolbarActionColor = toolbarActionColor;
         this.bottombarBackground = bottombarBackground;

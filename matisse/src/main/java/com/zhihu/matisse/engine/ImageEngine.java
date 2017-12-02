@@ -50,9 +50,9 @@ public interface ImageEngine {
      *
      * @param context   Context
      * @param imageView ImageView widget
-     * @param uri       Uri of the loaded image
+     * @param path       Uri of the loaded image
      */
-    void loadImage(Context context, ImageView imageView, Uri uri);
+    void loadImage(Context context, ImageView imageView, String path);
 
     /**
      * Load a gif image resource.

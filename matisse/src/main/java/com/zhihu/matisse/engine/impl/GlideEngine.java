@@ -40,8 +40,8 @@ public class GlideEngine implements ImageEngine {
     }
 
     @Override
-    public void loadImage(Context context, ImageView imageView, Uri uri) {
-        Glide.with(context).load(uri).asBitmap().fitCenter().into(imageView);
+    public void loadImage(Context context, ImageView imageView, String path) {
+        Glide.with(context).load(path).asBitmap().fitCenter().into(imageView);
     }
 
     @Override

@@ -16,6 +16,7 @@
  */
 package com.zhihu.matisse.internal.entity;
 
+import android.content.ContentUris;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Parcel;
@@ -113,7 +114,7 @@ public class Item implements Parcelable {
             // ?
             contentUri = MediaStore.Files.getContentUri("external");
         }
-        return contentUri;
+        return  ContentUris.withAppendedId(contentUri, id);
     }
 
     @Override

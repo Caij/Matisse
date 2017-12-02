@@ -69,7 +69,7 @@ public class PreviewItemFragment extends Fragment {
                 @Override
                 public void onClick(View v) {
                     Intent intent = new Intent(Intent.ACTION_VIEW);
-                    intent.setDataAndType(item.uri, "video/*");
+                    intent.setDataAndType(item.getUri(), "video/*");
                     try {
                         startActivity(intent);
                     } catch (ActivityNotFoundException e) {
@@ -85,18 +85,18 @@ public class PreviewItemFragment extends Fragment {
         mBigImageView = view.findViewById(R.id.big_view);
 
         if (item.isGif() || item.isVideo()) {
-            SelectionSpec.getInstance().imageEngine.loadGifImage(getContext(), mPhotoView, item.getContentUri());
+            SelectionSpec.getInstance().imageEngine.loadGifImage(getContext(), mPhotoView, item.path);
             mBigImageView.setVisibility(View.GONE);
             mPhotoView.setVisibility(View.VISIBLE);
         } else {
             mBigImageView.setVisibility(View.VISIBLE);
             mPhotoView.setVisibility(View.GONE);
-            if (PhotoMetadataUtils.isLongImage(getActivity().getContentResolver(), item.getContentUri())) {
+            if (PhotoMetadataUtils.isLongImage(item.path)) {
                 mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_TOP_CROP);
             }else {
                 mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_CENTER_INSIDE);
             }
-            mBigImageView.setImage(PhotoMetadataUtils.getPath(getActivity().getContentResolver(), item.getContentUri()));
+            mBigImageView.setImage(item.path);
         }
     }
 

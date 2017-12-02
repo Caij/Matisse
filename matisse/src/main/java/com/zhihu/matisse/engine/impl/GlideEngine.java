@@ -30,13 +30,13 @@ import com.zhihu.matisse.engine.ImageEngine;
 public class GlideEngine implements ImageEngine {
 
     @Override
-    public void loadThumbnail(Context context, Drawable placeholder, ImageView imageView, Uri uri) {
-        Glide.with(context).load(uri).asBitmap().centerCrop().placeholder(placeholder).into(imageView);
+    public void loadThumbnail(Context context, Drawable placeholder, ImageView imageView, String path) {
+        Glide.with(context).load(path).asBitmap().centerCrop().placeholder(placeholder).into(imageView);
     }
 
     @Override
-    public void loadGifThumbnail(Context context, Drawable placeholder, ImageView imageView, Uri uri) {
-        Glide.with(context).load(uri).asBitmap().centerCrop().placeholder(placeholder).into(imageView);
+    public void loadGifThumbnail(Context context, Drawable placeholder, ImageView imageView, String path) {
+        Glide.with(context).load(path).asBitmap().centerCrop().placeholder(placeholder).into(imageView);
     }
 
     @Override
@@ -45,8 +45,8 @@ public class GlideEngine implements ImageEngine {
     }
 
     @Override
-    public void loadGifImage(Context context, ImageView imageView, Uri uri) {
-        Glide.with(context).load(uri).fitCenter().into(imageView);
+    public void loadGifImage(Context context, ImageView imageView, String path) {
+        Glide.with(context).load(path).fitCenter().into(imageView);
     }
 
     @Override

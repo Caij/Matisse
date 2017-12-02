@@ -53,33 +53,6 @@ public final class PhotoMetadataUtils {
         throw new AssertionError("oops! the utility class is about to be instantiated...");
     }
 
-    public static int getPixelsCount(ContentResolver resolver, Uri uri) {
-        Point size = getBitmapBound(resolver, uri);
-        return size.x * size.y;
-    }
-
-    public static Point getBitmapSize(Uri uri, Activity activity) {
-        ContentResolver resolver = activity.getContentResolver();
-        Point imageSize = getBitmapBound(resolver, uri);
-        int w = imageSize.x;
-        int h = imageSize.y;
-        if (PhotoMetadataUtils.shouldRotate(resolver, uri)) {
-            w = imageSize.y;
-            h = imageSize.x;
-        }
-        if (h == 0) return new Point(MAX_WIDTH, MAX_WIDTH);
-        DisplayMetrics metrics = new DisplayMetrics();
-        activity.getWindowManager().getDefaultDisplay().getMetrics(metrics);
-        float screenWidth = (float) metrics.widthPixels;
-        float screenHeight = (float) metrics.heightPixels;
-        float widthScale = screenWidth / w;
-        float heightScale = screenHeight / h;
-        if (widthScale > heightScale) {
-            return new Point((int) (w * widthScale), (int) (h * heightScale));
-        }
-        return new Point((int) (w * widthScale), (int) (h * heightScale));
-    }
-
     public static Point getBitmapBound(ContentResolver resolver, Uri uri) {
         InputStream is = null;
         try {
@@ -147,21 +120,20 @@ public final class PhotoMetadataUtils {
             return false;
         }
 
-        ContentResolver resolver = context.getContentResolver();
         for (MimeType type : SelectionSpec.getInstance().mimeTypeSet) {
-            if (type.checkType(resolver, item.getContentUri())) {
+            if (type.checkType(item.mimeType, item.path)) {
                 return true;
             }
         }
         return false;
     }
 
-    private static boolean shouldRotate(ContentResolver resolver, Uri uri) {
+    private static boolean shouldRotate(String path) {
         ExifInterface exif;
         try {
-            exif = ExifInterfaceCompat.newInstance(getPath(resolver, uri));
+            exif = ExifInterfaceCompat.newInstance(path);
         } catch (IOException e) {
-            Log.e(TAG, "could not read exif info of the image: " + uri);
+            Log.e(TAG, "could not read exif info of the image: " + path);
             return false;
         }
         int orientation = exif.getAttributeInt(ExifInterface.TAG_ORIENTATION, -1);
@@ -175,16 +147,19 @@ public final class PhotoMetadataUtils {
         return Float.valueOf(new DecimalFormat("0.0").format((float) sizeInBytes / 1024 / 1024));
     }
 
-    public static boolean isLongImage(ContentResolver resolver, Uri uri) {
-        Point point = getBitmapBound(resolver, uri);
+    public static boolean isLongImage(String path) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inJustDecodeBounds = true;
+        BitmapFactory.decodeFile(path, options);
+
         int width;
         int height;
-        if (shouldRotate(resolver, uri)) {
-            width = point.y;
-            height = point.x;
+        if (shouldRotate(path)) {
+            width = options.outHeight;
+            height = options.outWidth;
         }else {
-            width = point.x;
-            height = point.y;
+            width = options.outWidth;
+            height = options.outHeight;
         }
         return height / width > 3;
     }

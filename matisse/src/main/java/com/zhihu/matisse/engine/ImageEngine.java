@@ -28,24 +28,22 @@ public interface ImageEngine {
 
     /**
      * Load thumbnail of a static image resource.
-     *
-     * @param context     Context
+     *  @param context     Context
      * @param placeholder Placeholder drawable when image is not loaded yet
      * @param imageView   ImageView widget
-     * @param uri         Uri of the loaded image
+     * @param path         Uri of the loaded image
      */
-    void loadThumbnail(Context context, Drawable placeholder, ImageView imageView, Uri uri);
+    void loadThumbnail(Context context, Drawable placeholder, ImageView imageView, String path);
 
     /**
      * Load thumbnail of a gif image resource. You don't have to load an animated gif when it's only
      * a thumbnail tile.
-     *
-     * @param context     Context
+     *  @param context     Context
      * @param placeholder Placeholder drawable when image is not loaded yet
      * @param imageView   ImageView widget
-     * @param uri         Uri of the loaded image
+     * @param path         Uri of the loaded image
      */
-    void loadGifThumbnail(Context context, Drawable placeholder, ImageView imageView, Uri uri);
+    void loadGifThumbnail(Context context, Drawable placeholder, ImageView imageView, String path);
 
     /**
      * Load a static image resource.
@@ -58,12 +56,11 @@ public interface ImageEngine {
 
     /**
      * Load a gif image resource.
-     *
-     * @param context   Context
+     *  @param context   Context
      * @param imageView ImageView widget
-     * @param uri       Uri of the loaded image
+     * @param path       Uri of the loaded image
      */
-    void loadGifImage(Context context, ImageView imageView, Uri uri);
+    void loadGifImage(Context context, ImageView imageView, String path);
 
     /**
      * Whether this implementation supports animated gif.

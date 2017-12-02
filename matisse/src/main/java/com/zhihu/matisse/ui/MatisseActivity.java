@@ -287,7 +287,7 @@ public class MatisseActivity extends AppCompatActivity implements
 
             sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(path))));
 
-            Item item = new Item(Item.ITEM_ID_CAPTURE_IMAGE, MimeType.JPEG.toString(), new File(path).length(), 0);
+            Item item = new Item(Item.ITEM_ID_CAPTURE_IMAGE, path, MimeType.JPEG.toString(), new File(path).length(), 0);
             ArrayList<Item> selectedItems = new ArrayList<>();
             selectedItems.add(item);
             Intent result = new Intent();

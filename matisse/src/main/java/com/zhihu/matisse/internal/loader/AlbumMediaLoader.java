@@ -36,6 +36,7 @@ public class AlbumMediaLoader extends CursorLoader {
     private static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
     public static final String[] PROJECTION = {
             MediaStore.Files.FileColumns._ID,
+            MediaStore.MediaColumns.DATA,
             MediaStore.MediaColumns.DISPLAY_NAME,
             MediaStore.MediaColumns.MIME_TYPE,
             MediaStore.MediaColumns.SIZE,
@@ -143,7 +144,7 @@ public class AlbumMediaLoader extends CursorLoader {
             return result;
         }
         MatrixCursor dummy = new MatrixCursor(PROJECTION);
-        dummy.addRow(new Object[]{Item.ITEM_ID_CAPTURE, Item.ITEM_DISPLAY_NAME_CAPTURE, "", 0, 0});
+        dummy.addRow(new Object[]{Item.ITEM_ID_CAPTURE, "", Item.ITEM_DISPLAY_NAME_CAPTURE, "", 0, 0});
         return new MergeCursor(new Cursor[]{dummy, result});
     }
 

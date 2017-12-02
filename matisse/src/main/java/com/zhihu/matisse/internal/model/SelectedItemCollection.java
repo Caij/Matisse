@@ -142,18 +142,11 @@ public class SelectedItemCollection {
         return new ArrayList<>(mItems);
     }
 
-    public List<Uri> asListOfUri() {
-        List<Uri> uris = new ArrayList<>();
-        for (Item item : mItems) {
-            uris.add(item.getContentUri());
-        }
-        return uris;
-    }
 
     public List<String> asListOfString() {
         List<String> paths = new ArrayList<>();
         for (Item item : mItems) {
-            paths.add(PathUtils.getPath(mContext, item.getContentUri()));
+            paths.add(item.path);
         }
         return paths;
     }

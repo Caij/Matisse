@@ -123,13 +123,12 @@ public enum MimeType {
         return mMimeTypeName;
     }
 
-    public boolean checkType(ContentResolver resolver, Uri uri) {
+    public boolean checkType(String mimeType, String path) {
         MimeTypeMap map = MimeTypeMap.getSingleton();
-        if (uri == null) {
+        if (TextUtils.isEmpty(mimeType)) {
             return false;
         }
-        String type = map.getExtensionFromMimeType(resolver.getType(uri));
-        String path = null;
+        String type = map.getExtensionFromMimeType(mimeType);
         // lazy load the path and prevent resolve for multiple times
         boolean pathParsed = false;
         for (String extension : mExtensions) {
@@ -138,7 +137,6 @@ public enum MimeType {
             }
             if (!pathParsed) {
                 // we only resolve the path for one time
-                path = PhotoMetadataUtils.getPath(resolver, uri);
                 if (!TextUtils.isEmpty(path)) {
                     path = path.toLowerCase(Locale.US);
                 }

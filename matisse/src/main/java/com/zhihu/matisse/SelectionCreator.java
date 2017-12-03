@@ -295,7 +295,7 @@ public final class SelectionCreator {
     }
 
 
-    public SelectionCreator oldItems(List<Item> items) {
+    public SelectionCreator oldItems(List<String> items) {
         mSelectionSpec.oldItems = items;
         return this;
     }

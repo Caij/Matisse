@@ -53,7 +53,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
 
     private UriAdapter mAdapter;
 
-    List<Item> items;
+    List<String> items;
     private boolean isSource;
 
     @Override
@@ -136,7 +136,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
         super.onActivityResult(requestCode, resultCode, data);
         if (requestCode == REQUEST_CODE_CHOOSE && resultCode == RESULT_OK) {
 //            mAdapter.setData(Matisse.obtainResult(data));
-            items = Matisse.obtainResult(data);
+            items = Matisse.obtainPathResult(data);
             isSource = Matisse.obtainIsSourceResult(data);
             Log.d(TAG, "isSource: " + isSource);
         }

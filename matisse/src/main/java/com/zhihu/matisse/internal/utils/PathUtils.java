@@ -9,6 +9,13 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
+
+import com.zhihu.matisse.internal.entity.Item;
+import com.zhihu.matisse.internal.loader.AlbumMediaLoader;
+
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * http://stackoverflow.com/a/27271131/4739220
@@ -131,5 +138,34 @@ public class PathUtils {
      */
     public static boolean isMediaDocument(Uri uri) {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
+    }
+
+    public static List<Item> path2Item(Context context, @NonNull List<String> paths) {
+        String selection = AlbumMediaLoader.SELECTION_ALL + " AND " + MediaStore.MediaColumns.DATA + "=?";
+        List<Item> items = new ArrayList<>(paths.size());
+        for (String path : paths) {
+            String[] args = new String[AlbumMediaLoader.SELECTION_ALL_ARGS.length + 1];
+            for (int i = 0; i < AlbumMediaLoader.SELECTION_ALL_ARGS.length; i++) {
+                args[i] = AlbumMediaLoader.SELECTION_ALL_ARGS[i];
+            }
+            args[AlbumMediaLoader.SELECTION_ALL_ARGS.length] = path;
+
+            Cursor cursor = context.getContentResolver().query(AlbumMediaLoader.QUERY_URI, AlbumMediaLoader.PROJECTION, selection, args, null);
+            try {
+                if (cursor != null && cursor.moveToFirst()) {
+                    Item item = Item.valueOf(cursor);
+                    items.add(item);
+                }
+            }catch (Exception e) {
+                e.printStackTrace();
+            }finally {
+                if (cursor != null) {
+                    cursor.close();
+                }
+            }
+
+        }
+
+        return items;
     }
 }

@@ -33,7 +33,7 @@ import com.zhihu.matisse.internal.utils.MediaStoreCompat;
  * Load images and videos into a single cursor.
  */
 public class AlbumMediaLoader extends CursorLoader {
-    private static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
+    public static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
     public static final String[] PROJECTION = {
             MediaStore.Files.FileColumns._ID,
             MediaStore.MediaColumns.DATA,
@@ -43,12 +43,12 @@ public class AlbumMediaLoader extends CursorLoader {
             "duration"};
 
     // === params for album ALL && showSingleMediaType: false ===
-    private static final String SELECTION_ALL =
+    public static final String SELECTION_ALL =
             "(" + MediaStore.Files.FileColumns.MEDIA_TYPE + "=?"
                     + " OR "
                     + MediaStore.Files.FileColumns.MEDIA_TYPE + "=?)"
                     + " AND " + MediaStore.MediaColumns.SIZE + ">0";
-    private static final String[] SELECTION_ALL_ARGS = {
+    public static final String[] SELECTION_ALL_ARGS = {
             String.valueOf(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE),
             String.valueOf(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO),
     };

@@ -156,7 +156,7 @@ public class MatisseActivity extends AppCompatActivity implements
         mAlbumCollection.loadAlbums();
 
         if (mSpec.oldItems != null && !mSpec.oldItems.isEmpty()) {
-            for (Item item : mSpec.oldItems) {
+            for (Item item : PathUtils.path2Item(this, mSpec.oldItems)) {
                 mSelectedCollection.add(item);
             }
         }

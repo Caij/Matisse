@@ -47,7 +47,7 @@ public final class SelectionSpec {
     public float thumbnailScale;
     public ImageEngine imageEngine;
     public Source source; //是否可选原图
-    public List<Item> oldItems; //是否可选原图
+    public List<String> oldItems; //是否可选原图
 
     private SelectionSpec() {
     }

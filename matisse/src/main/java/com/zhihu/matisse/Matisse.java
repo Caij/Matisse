@@ -25,6 +25,7 @@ import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.ui.MatisseActivity;
 
 import java.lang.ref.WeakReference;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Set;
 
@@ -86,6 +87,15 @@ public final class Matisse {
         return data.getParcelableArrayListExtra(MatisseActivity.EXTRA_RESULT_SELECTION);
     }
 
+
+    public static List<String> obtainPathResult(Intent data) {
+        List<Item> items = obtainResult(data);
+        List<String> paths = new ArrayList<>();
+        for (Item item : items) {
+            paths.add(item.path);
+        }
+        return paths;
+    }
 
     public static boolean obtainIsSourceResult(Intent data) {
         return data.getBooleanExtra(MatisseActivity.EXTRA_RESULT_SOURCE, false);

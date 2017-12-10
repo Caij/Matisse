@@ -49,7 +49,7 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
     public static final String EXTRA_RESULT_APPLY = "extra_result_apply";
     public static final String EXTRA_RESULT_SOURCE = "extra_result_source";
 
-    protected final SelectedItemCollection mSelectedCollection = new SelectedItemCollection(this);
+    protected SelectedItemCollection mSelectedCollection;
     protected SelectionSpec mSpec;
     protected ViewPager mPager;
 
@@ -64,9 +64,10 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
-        SelectionSpec selectionSpec = SelectionSpec.getInstance();
-        if (selectionSpec.theme != null) {
-            setTheme(selectionSpec.theme.themeId);
+        mSpec = SelectionSpec.createSelectionSpec(getIntent());
+        mSelectedCollection = new SelectedItemCollection(this, mSpec);
+        if (mSpec.theme != null) {
+            setTheme(mSpec.theme.themeId);
         }else {
             setTheme(R.style.Matisse_Zhihu);
         }
@@ -76,7 +77,6 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
             getWindow().addFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS);
         }
 
-        mSpec = SelectionSpec.getInstance();
         if (mSpec.needOrientationRestriction()) {
             setRequestedOrientation(mSpec.orientation);
         }

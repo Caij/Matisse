@@ -51,9 +51,9 @@ public class AlbumMediaAdapter extends
     private RecyclerView mRecyclerView;
     private int mImageResize;
 
-    public AlbumMediaAdapter(Context context, SelectedItemCollection selectedCollection, RecyclerView recyclerView) {
+    public AlbumMediaAdapter(Context context, SelectedItemCollection selectedCollection, RecyclerView recyclerView, SelectionSpec selectionSpec) {
         super(null);
-        mSelectionSpec = SelectionSpec.getInstance();
+        mSelectionSpec = selectionSpec;
         mSelectedCollection = selectedCollection;
 
         TypedArray ta = context.getTheme().obtainStyledAttributes(new int[]{R.attr.item_placeholder});

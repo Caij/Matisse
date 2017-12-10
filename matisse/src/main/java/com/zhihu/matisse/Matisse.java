@@ -21,6 +21,7 @@ import android.net.Uri;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 
+import com.zhihu.matisse.engine.ImageEngine;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.ui.MatisseActivity;
 
@@ -36,6 +37,12 @@ public final class Matisse {
 
     private final WeakReference<Activity> mContext;
     private final WeakReference<Fragment> mFragment;
+
+    public static ImageEngine imageEngine;
+
+    public static void init(ImageEngine engine) {
+        imageEngine = engine;
+    }
 
     private Matisse(Activity activity) {
         this(activity, null);

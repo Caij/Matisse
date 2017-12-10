@@ -21,8 +21,11 @@ import android.support.annotation.Nullable;
 
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
+import com.zhihu.matisse.internal.entity.SelectionSpec;
+import com.zhihu.matisse.internal.loader.AlbumMediaLoader;
 import com.zhihu.matisse.internal.model.AlbumMediaCollection;
 import com.zhihu.matisse.internal.ui.adapter.PreviewPagerAdapter;
+import com.zhihu.matisse.internal.utils.TypeUtil;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -43,7 +46,11 @@ public class AlbumPreviewActivity extends BasePreviewActivity implements
 
         mCollection.onCreate(this, this);
         Album album = getIntent().getParcelableExtra(EXTRA_ALBUM);
-        mCollection.load(album);
+
+        SelectionSpec selectionSpec = SelectionSpec.createSelectionSpec(getIntent());
+        int type = TypeUtil.getShowType(selectionSpec);
+
+        mCollection.load(album, type);
 
         Item item = getIntent().getParcelableExtra(EXTRA_ITEM);
         if (mSpec.countable) {

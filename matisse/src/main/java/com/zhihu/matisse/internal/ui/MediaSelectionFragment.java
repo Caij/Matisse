@@ -18,6 +18,7 @@ package com.zhihu.matisse.internal.ui;
 import android.content.Context;
 import android.database.Cursor;
 import android.os.Bundle;
+import android.provider.MediaStore;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.GridLayoutManager;
@@ -30,10 +31,12 @@ import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
+import com.zhihu.matisse.internal.loader.AlbumMediaLoader;
 import com.zhihu.matisse.internal.model.AlbumMediaCollection;
 import com.zhihu.matisse.internal.model.SelectedItemCollection;
 import com.zhihu.matisse.internal.ui.adapter.AlbumMediaAdapter;
 import com.zhihu.matisse.internal.ui.widget.MediaGridInset;
+import com.zhihu.matisse.internal.utils.TypeUtil;
 import com.zhihu.matisse.internal.utils.UIUtils;
 
 public class MediaSelectionFragment extends Fragment implements
@@ -91,14 +94,16 @@ public class MediaSelectionFragment extends Fragment implements
         super.onActivityCreated(savedInstanceState);
         Album album = getArguments().getParcelable(EXTRA_ALBUM);
 
+        SelectionSpec selectionSpec = SelectionSpec.createSelectionSpec(getActivity().getIntent());
+
         mAdapter = new AlbumMediaAdapter(getContext(),
-                mSelectionProvider.provideSelectedItemCollection(), mRecyclerView);
+                mSelectionProvider.provideSelectedItemCollection(), mRecyclerView, selectionSpec);
         mAdapter.registerCheckStateListener(this);
         mAdapter.registerOnMediaClickListener(this);
         mRecyclerView.setHasFixedSize(true);
 
         int spanCount;
-        SelectionSpec selectionSpec = SelectionSpec.getInstance();
+
         if (selectionSpec.gridExpectedSize > 0) {
             spanCount = UIUtils.spanCount(getContext(), selectionSpec.gridExpectedSize);
         } else {
@@ -110,7 +115,11 @@ public class MediaSelectionFragment extends Fragment implements
         mRecyclerView.addItemDecoration(new MediaGridInset(spanCount, spacing, false));
         mRecyclerView.setAdapter(mAdapter);
         mAlbumMediaCollection.onCreate(getActivity(), this);
-        mAlbumMediaCollection.load(album, selectionSpec.capture);
+
+
+        int type = TypeUtil.getShowType(selectionSpec);
+
+        mAlbumMediaCollection.load(album, selectionSpec.capture, type);
     }
 
     @Override

@@ -15,7 +15,12 @@
  */
 package com.zhihu.matisse.internal.entity;
 
-public class CaptureStrategy {
+import android.os.Parcel;
+import android.os.Parcelable;
+
+import java.io.Serializable;
+
+public class CaptureStrategy implements Serializable, Parcelable {
 
     public final boolean isPublic;
     public final String authority;
@@ -23,5 +28,33 @@ public class CaptureStrategy {
     public CaptureStrategy(boolean isPublic, String authority) {
         this.isPublic = isPublic;
         this.authority = authority;
+    }
+
+    protected CaptureStrategy(Parcel in) {
+        isPublic = in.readByte() != 0;
+        authority = in.readString();
+    }
+
+    public static final Creator<CaptureStrategy> CREATOR = new Creator<CaptureStrategy>() {
+        @Override
+        public CaptureStrategy createFromParcel(Parcel in) {
+            return new CaptureStrategy(in);
+        }
+
+        @Override
+        public CaptureStrategy[] newArray(int size) {
+            return new CaptureStrategy[size];
+        }
+    };
+
+    @Override
+    public int describeContents() {
+        return 0;
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeByte((byte) (isPublic ? 1 : 0));
+        dest.writeString(authority);
     }
 }

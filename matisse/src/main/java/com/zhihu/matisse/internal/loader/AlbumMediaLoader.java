@@ -97,21 +97,26 @@ public class AlbumMediaLoader extends CursorLoader {
     private static final String ORDER_BY = MediaStore.Images.Media.DATE_TAKEN + " DESC";
     private final boolean mEnableCapture;
 
+
+    public static final int TYPE_ONLYSHOWIMAGES = 1;
+    public static final int TYPE_ONLYSHOWVIDEOS = 2;
+    public static final int TYPE_ALL = 3;
+
     private AlbumMediaLoader(Context context, String selection, String[] selectionArgs, boolean capture) {
         super(context, QUERY_URI, PROJECTION, selection, selectionArgs, ORDER_BY);
         mEnableCapture = capture;
     }
 
-    public static CursorLoader newInstance(Context context, Album album, boolean capture) {
+    public static CursorLoader newInstance(Context context, Album album, boolean capture, int type) {
         String selection;
         String[] selectionArgs;
         boolean enableCapture;
 
         if (album.isAll()) {
-            if (SelectionSpec.getInstance().onlyShowImages()) {
+            if (type == TYPE_ONLYSHOWIMAGES) {
                 selection = SELECTION_ALL_FOR_SINGLE_MEDIA_TYPE;
                 selectionArgs = getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE);
-            } else if (SelectionSpec.getInstance().onlyShowVideos()) {
+            } else if (type == TYPE_ONLYSHOWVIDEOS) {
                 selection = SELECTION_ALL_FOR_SINGLE_MEDIA_TYPE;
                 selectionArgs = getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO);
             } else {
@@ -120,11 +125,11 @@ public class AlbumMediaLoader extends CursorLoader {
             }
             enableCapture = capture;
         } else {
-            if (SelectionSpec.getInstance().onlyShowImages()) {
+            if (type == TYPE_ONLYSHOWIMAGES) {
                 selection = SELECTION_ALBUM_FOR_SINGLE_MEDIA_TYPE;
                 selectionArgs = getSelectionAlbumArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE,
                         album.getId());
-            } else if (SelectionSpec.getInstance().onlyShowVideos()) {
+            } else if (type == TYPE_ONLYSHOWVIDEOS) {
                 selection = SELECTION_ALBUM_FOR_SINGLE_MEDIA_TYPE;
                 selectionArgs = getSelectionAlbumArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO,
                         album.getId());

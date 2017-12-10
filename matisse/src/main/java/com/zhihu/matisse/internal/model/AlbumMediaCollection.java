@@ -34,6 +34,7 @@ public class AlbumMediaCollection implements LoaderManager.LoaderCallbacks<Curso
     private static final int LOADER_ID = 2;
     private static final String ARGS_ALBUM = "args_album";
     private static final String ARGS_ENABLE_CAPTURE = "args_enable_capture";
+    private static final String ARGS_TYPE = "args_type";
     private WeakReference<Context> mContext;
     private LoaderManager mLoaderManager;
     private AlbumMediaCallbacks mCallbacks;
@@ -50,8 +51,10 @@ public class AlbumMediaCollection implements LoaderManager.LoaderCallbacks<Curso
             return null;
         }
 
+        int type = args.getInt(ARGS_TYPE);
+
         return AlbumMediaLoader.newInstance(context, album,
-                album.isAll() && args.getBoolean(ARGS_ENABLE_CAPTURE, false));
+                album.isAll() && args.getBoolean(ARGS_ENABLE_CAPTURE, false), type);
     }
 
     @Override
@@ -85,14 +88,15 @@ public class AlbumMediaCollection implements LoaderManager.LoaderCallbacks<Curso
         mCallbacks = null;
     }
 
-    public void load(@Nullable Album target) {
-        load(target, false);
+    public void load(@Nullable Album target, int type) {
+        load(target, false, type);
     }
 
-    public void load(@Nullable Album target, boolean enableCapture) {
+    public void load(@Nullable Album target, boolean enableCapture, int type) {
         Bundle args = new Bundle();
         args.putParcelable(ARGS_ALBUM, target);
         args.putBoolean(ARGS_ENABLE_CAPTURE, enableCapture);
+        args.putInt(ARGS_TYPE, type);
         mLoaderManager.initLoader(LOADER_ID, args, this);
     }
 

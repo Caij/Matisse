@@ -30,6 +30,7 @@ import java.lang.ref.WeakReference;
 public class AlbumCollection implements LoaderManager.LoaderCallbacks<Cursor> {
     private static final int LOADER_ID = 1;
     private static final String STATE_CURRENT_SELECTION = "state_current_selection";
+    private static final String ARGS_TYPE = "args_type";
     private WeakReference<Context> mContext;
     private LoaderManager mLoaderManager;
     private AlbumCallbacks mCallbacks;
@@ -41,7 +42,10 @@ public class AlbumCollection implements LoaderManager.LoaderCallbacks<Cursor> {
         if (context == null) {
             return null;
         }
-        return AlbumLoader.newInstance(context);
+
+        int type = args.getInt(ARGS_TYPE);
+
+        return AlbumLoader.newInstance(context, type);
     }
 
     @Override
@@ -87,8 +91,10 @@ public class AlbumCollection implements LoaderManager.LoaderCallbacks<Cursor> {
         mCallbacks = null;
     }
 
-    public void loadAlbums() {
-        mLoaderManager.initLoader(LOADER_ID, null, this);
+    public void loadAlbums(int type) {
+        Bundle bundle = new Bundle();
+        bundle.putInt(ARGS_TYPE, type);
+        mLoaderManager.initLoader(LOADER_ID, bundle, this);
     }
 
     public int getCurrentSelection() {

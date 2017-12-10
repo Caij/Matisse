@@ -65,6 +65,7 @@ import com.zhihu.matisse.internal.ui.widget.AlbumsSpinner;
 import com.zhihu.matisse.internal.utils.MediaStoreCompat;
 import com.zhihu.matisse.internal.utils.PathUtils;
 import com.zhihu.matisse.internal.utils.SizeUtils;
+import com.zhihu.matisse.internal.utils.TypeUtil;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -88,7 +89,7 @@ public class MatisseActivity extends AppCompatActivity implements
     private static final int REQUEST_CODE_CAPTURE = 24;
     private final AlbumCollection mAlbumCollection = new AlbumCollection();
     private MediaStoreCompat mMediaStoreCompat;
-    private SelectedItemCollection mSelectedCollection = new SelectedItemCollection(this);
+    private SelectedItemCollection mSelectedCollection;
     private SelectionSpec mSpec;
 
     private AlbumsSpinner mAlbumsSpinner;
@@ -102,7 +103,8 @@ public class MatisseActivity extends AppCompatActivity implements
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         // programmatically set theme before super.onCreate()
-        mSpec = SelectionSpec.getInstance();
+        mSpec = SelectionSpec.createSelectionSpec(getIntent());
+        mSelectedCollection = new SelectedItemCollection(this, mSpec);
         if (mSpec.theme != null) {
             setTheme(mSpec.theme.themeId);
         }else {
@@ -153,7 +155,10 @@ public class MatisseActivity extends AppCompatActivity implements
         mAlbumsSpinner.setAdapter(mAlbumsAdapter);
         mAlbumCollection.onCreate(this, this);
         mAlbumCollection.onRestoreInstanceState(savedInstanceState);
-        mAlbumCollection.loadAlbums();
+
+        int type = TypeUtil.getShowType(mSpec);
+
+        mAlbumCollection.loadAlbums(type);
 
         if (mSpec.oldItems != null && !mSpec.oldItems.isEmpty()) {
             for (Item item : PathUtils.path2Item(this, mSpec.oldItems)) {
@@ -324,6 +329,7 @@ public class MatisseActivity extends AppCompatActivity implements
             Intent intent = new Intent(this, SelectedPreviewActivity.class);
             intent.putExtra(BasePreviewActivity.EXTRA_DEFAULT_BUNDLE, mSelectedCollection.getDataWithBundle());
             intent.putExtra(BasePreviewActivity.EXTRA_RESULT_SOURCE, mCbSource.isChecked());
+            intent = mSpec.createIntent(intent);
             startActivityForResult(intent, REQUEST_CODE_PREVIEW);
         } else if (v.getId() == R.id.button_apply) {
             Intent result = new Intent();
@@ -340,7 +346,7 @@ public class MatisseActivity extends AppCompatActivity implements
         mAlbumCollection.setStateCurrentSelection(position);
         mAlbumsAdapter.getCursor().moveToPosition(position);
         Album album = Album.valueOf(mAlbumsAdapter.getCursor());
-        if (album.isAll() && SelectionSpec.getInstance().capture) {
+        if (album.isAll() && mSpec.capture) {
             album.addCaptureCount();
         }
         onAlbumSelected(album);
@@ -364,7 +370,7 @@ public class MatisseActivity extends AppCompatActivity implements
                 mAlbumsSpinner.setSelection(MatisseActivity.this,
                         mAlbumCollection.getCurrentSelection());
                 Album album = Album.valueOf(cursor);
-                if (album.isAll() && SelectionSpec.getInstance().capture) {
+                if (album.isAll() && mSpec.capture) {
                     album.addCaptureCount();
                 }
                 onAlbumSelected(album);
@@ -409,6 +415,7 @@ public class MatisseActivity extends AppCompatActivity implements
         intent.putExtra(AlbumPreviewActivity.EXTRA_ITEM, item);
         intent.putExtra(BasePreviewActivity.EXTRA_DEFAULT_BUNDLE, mSelectedCollection.getDataWithBundle());
         intent.putExtra(BasePreviewActivity.EXTRA_RESULT_SOURCE, mCbSource.isChecked());
+        mSpec.createIntent(intent);
         startActivityForResult(intent, REQUEST_CODE_PREVIEW);
     }
 

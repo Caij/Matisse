@@ -27,6 +27,9 @@ import android.support.v4.content.CursorLoader;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
 
+import static com.zhihu.matisse.internal.loader.AlbumMediaLoader.TYPE_ONLYSHOWIMAGES;
+import static com.zhihu.matisse.internal.loader.AlbumMediaLoader.TYPE_ONLYSHOWVIDEOS;
+
 /**
  * Load all albums (grouped by bucket_id) into a single cursor.
  */
@@ -76,13 +79,13 @@ public class AlbumLoader extends CursorLoader {
         super(context, QUERY_URI, PROJECTION, selection, selectionArgs, BUCKET_ORDER_BY);
     }
 
-    public static CursorLoader newInstance(Context context) {
+    public static CursorLoader newInstance(Context context, int type) {
         String selection;
         String[] selectionArgs;
-        if (SelectionSpec.getInstance().onlyShowImages()) {
+        if (type == TYPE_ONLYSHOWIMAGES) {
             selection = SELECTION_FOR_SINGLE_MEDIA_TYPE;
             selectionArgs = getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE);
-        } else if (SelectionSpec.getInstance().onlyShowVideos()) {
+        } else if (type == TYPE_ONLYSHOWVIDEOS) {
             selection = SELECTION_FOR_SINGLE_MEDIA_TYPE;
             selectionArgs = getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO);
         } else {

@@ -27,6 +27,7 @@ import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
@@ -67,7 +68,7 @@ public class AlbumsAdapter extends CursorAdapter {
         ((TextView) view.findViewById(R.id.album_media_count)).setText(String.valueOf(album.getCount()));
 
         // do not need to load animated Gif
-        SelectionSpec.getInstance().imageEngine.loadThumbnail(context, mPlaceholder,
+        Matisse.imageEngine.loadThumbnail(context, mPlaceholder,
                 (ImageView) view.findViewById(R.id.album_cover), album.getCoverPath());
     }
 }

@@ -25,6 +25,7 @@ import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
+import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
@@ -111,10 +112,10 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
 
     private void setImage() {
         if (mMedia.isGif()) {
-            SelectionSpec.getInstance().imageEngine.loadGifThumbnail(getContext(),
+            Matisse.imageEngine.loadGifThumbnail(getContext(),
                     mPreBindInfo.mPlaceholder, mThumbnail, mMedia.path);
         } else {
-            SelectionSpec.getInstance().imageEngine.loadThumbnail(getContext(),
+            Matisse.imageEngine.loadThumbnail(getContext(),
                     mPreBindInfo.mPlaceholder, mThumbnail, mMedia.path);
         }
     }

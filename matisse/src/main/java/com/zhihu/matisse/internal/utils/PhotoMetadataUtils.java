@@ -99,13 +99,13 @@ public final class PhotoMetadataUtils {
         return uri.getPath();
     }
 
-    public static IncapableCause isAcceptable(Context context, Item item) {
-        if (!isSelectableType(context, item)) {
+    public static IncapableCause isAcceptable(Context context, Item item, SelectionSpec selectionSpec) {
+        if (!isSelectableType(context, item, selectionSpec)) {
             return new IncapableCause(context.getString(R.string.error_file_type));
         }
 
-        if (SelectionSpec.getInstance().filters != null) {
-            for (Filter filter : SelectionSpec.getInstance().filters) {
+        if (selectionSpec.filters != null) {
+            for (Filter filter : selectionSpec.filters) {
                 IncapableCause incapableCause = filter.filter(context, item);
                 if (incapableCause != null) {
                     return incapableCause;
@@ -115,12 +115,12 @@ public final class PhotoMetadataUtils {
         return null;
     }
 
-    private static boolean isSelectableType(Context context, Item item) {
+    private static boolean isSelectableType(Context context, Item item, SelectionSpec selectionSpec) {
         if (context == null) {
             return false;
         }
 
-        for (MimeType type : SelectionSpec.getInstance().mimeTypeSet) {
+        for (MimeType type : selectionSpec.mimeTypeSet) {
             if (type.checkType(item.mimeType, item.path)) {
                 return true;
             }

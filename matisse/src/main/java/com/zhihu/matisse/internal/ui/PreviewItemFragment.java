@@ -28,6 +28,7 @@ import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.github.chrisbanes.photoview.PhotoView;
+import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
@@ -85,7 +86,7 @@ public class PreviewItemFragment extends Fragment {
         mBigImageView = view.findViewById(R.id.big_view);
 
         if (item.isGif() || item.isVideo()) {
-            SelectionSpec.getInstance().imageEngine.loadGifImage(getContext(), mPhotoView, item.path);
+            Matisse.imageEngine.loadGifImage(getContext(), mPhotoView, item.path);
             mBigImageView.setVisibility(View.GONE);
             mPhotoView.setVisibility(View.VISIBLE);
         } else {

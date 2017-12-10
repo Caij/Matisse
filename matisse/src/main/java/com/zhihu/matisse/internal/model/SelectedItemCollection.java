@@ -58,8 +58,11 @@ public class SelectedItemCollection {
     private ArrayList<Item> mItems;
     private int mCollectionType = COLLECTION_UNDEFINED;
 
-    public SelectedItemCollection(Context context) {
+    private SelectionSpec mSelectionSpec;
+
+    public SelectedItemCollection(Context context, SelectionSpec selectionSpec) {
         mContext = context;
+        mSelectionSpec = selectionSpec;
     }
 
     public void onCreate(Bundle bundle) {
@@ -182,7 +185,7 @@ public class SelectedItemCollection {
             return new IncapableCause(mContext.getString(R.string.error_type_conflict));
         }
 
-        return PhotoMetadataUtils.isAcceptable(mContext, item);
+        return PhotoMetadataUtils.isAcceptable(mContext, item, mSelectionSpec);
     }
 
     public boolean maxSelectableReached() {
@@ -191,15 +194,14 @@ public class SelectedItemCollection {
 
     // depends
     private int currentMaxSelectable() {
-        SelectionSpec spec = SelectionSpec.getInstance();
-        if (spec.maxSelectable > 0) {
-            return spec.maxSelectable;
+        if (mSelectionSpec.maxSelectable > 0) {
+            return mSelectionSpec.maxSelectable;
         } else if (mCollectionType == COLLECTION_IMAGE) {
-            return spec.maxImageSelectable;
+            return mSelectionSpec.maxImageSelectable;
         } else if (mCollectionType == COLLECTION_VIDEO) {
-            return spec.maxVideoSelectable;
+            return mSelectionSpec.maxVideoSelectable;
         } else {
-            return spec.maxSelectable;
+            return mSelectionSpec.maxSelectable;
         }
     }
 
@@ -228,7 +230,7 @@ public class SelectedItemCollection {
      * while {@link SelectionSpec#mediaTypeExclusive} is set to false.
      */
     public boolean typeConflict(Item item) {
-        return SelectionSpec.getInstance().mediaTypeExclusive
+        return mSelectionSpec.mediaTypeExclusive
                 && ((item.isImage() && (mCollectionType == COLLECTION_VIDEO || mCollectionType == COLLECTION_MIXED))
                 || (item.isVideo() && (mCollectionType == COLLECTION_IMAGE || mCollectionType == COLLECTION_MIXED)));
     }

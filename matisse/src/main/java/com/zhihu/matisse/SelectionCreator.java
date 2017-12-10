@@ -96,7 +96,7 @@ public final class SelectionCreator {
      */
     SelectionCreator(Matisse matisse, @NonNull Set<MimeType> mimeTypes, boolean mediaTypeExclusive) {
         mMatisse = matisse;
-        mSelectionSpec = SelectionSpec.getCleanInstance();
+        mSelectionSpec = new SelectionSpec();
         mSelectionSpec.mimeTypeSet = mimeTypes;
         mSelectionSpec.mediaTypeExclusive = mediaTypeExclusive;
         mSelectionSpec.orientation = SCREEN_ORIENTATION_UNSPECIFIED;
@@ -256,35 +256,6 @@ public final class SelectionCreator {
     }
 
     /**
-     * Photo thumbnail's scale compared to the View's size. It should be a float value in (0.0,
-     * 1.0].
-     *
-     * @param scale Thumbnail's scale in (0.0, 1.0]. Default value is 0.5.
-     * @return {@link SelectionCreator} for fluent API.
-     */
-    public SelectionCreator thumbnailScale(float scale) {
-        if (scale <= 0f || scale > 1f)
-            throw new IllegalArgumentException("Thumbnail scale must be between (0.0, 1.0]");
-        mSelectionSpec.thumbnailScale = scale;
-        return this;
-    }
-
-    /**
-     * Provide an image engine.
-     * <p>
-     * There are two built-in image engines:
-     * 1. {@link com.zhihu.matisse.engine.impl.GlideEngine}
-     * And you can implement your own image engine.
-     *
-     * @param imageEngine {@link ImageEngine}
-     * @return {@link SelectionCreator} for fluent API.
-     */
-    public SelectionCreator imageEngine(ImageEngine imageEngine) {
-        mSelectionSpec.imageEngine = imageEngine;
-        return this;
-    }
-
-    /**
      *
      * @param source is select image source
      * @return {@link SelectionCreator} for fluent API.
@@ -312,7 +283,7 @@ public final class SelectionCreator {
         }
 
         Intent intent = new Intent(activity, MatisseActivity.class);
-
+        intent = mSelectionSpec.createIntent(intent);
         Fragment fragment = mMatisse.getFragment();
         if (fragment != null) {
             fragment.startActivityForResult(intent, requestCode);

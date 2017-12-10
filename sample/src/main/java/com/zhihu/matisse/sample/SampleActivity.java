@@ -59,6 +59,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        Matisse.init(new GlideEngine());
         setContentView(R.layout.activity_main);
         findViewById(R.id.zhihu).setOnClickListener(this);
         findViewById(R.id.dracula).setOnClickListener(this);
@@ -94,8 +95,6 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
                                             .gridExpectedSize(
                                                     getResources().getDimensionPixelSize(R.dimen.grid_expected_size))
                                             .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
-                                            .thumbnailScale(0.85f)
-                                            .imageEngine(new GlideEngine())
                                             .theme(new Theme(R.style.Matisse_Zhihu, ContextCompat.getColor(SampleActivity.this, R.color.white), ContextCompat.getColor(SampleActivity.this, R.color.white), ContextCompat.getColor(SampleActivity.this, R.color.black), ContextCompat.getColor(SampleActivity.this, R.color.white), true))
                                             .source(new Source(true, isSource))
                                             .oldItems(items)
@@ -108,7 +107,6 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
                                             .theme(theme)
                                             .countable(false)
                                             .maxSelectable(9)
-                                            .imageEngine(new GlideEngine())
                                             .forResult(REQUEST_CODE_CHOOSE);
                                     break;
                             }

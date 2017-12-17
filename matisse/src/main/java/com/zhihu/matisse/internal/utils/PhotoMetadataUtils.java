@@ -152,6 +152,8 @@ public final class PhotoMetadataUtils {
         options.inJustDecodeBounds = true;
         BitmapFactory.decodeFile(path, options);
 
+        if (options.outHeight <= 0 || options.outWidth <= 0) return false;
+
         int width;
         int height;
         if (shouldRotate(path)) {
@@ -161,6 +163,7 @@ public final class PhotoMetadataUtils {
             width = options.outWidth;
             height = options.outHeight;
         }
+
         return height / width > 3;
     }
 }

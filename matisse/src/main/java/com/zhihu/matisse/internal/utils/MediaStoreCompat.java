@@ -63,8 +63,12 @@ public class MediaStoreCompat {
      * @return true if the device has a camera feature. false otherwise.
      */
     public static boolean hasCameraFeature(Context context) {
-        PackageManager pm = context.getApplicationContext().getPackageManager();
-        return pm.hasSystemFeature(PackageManager.FEATURE_CAMERA);
+        try {
+            PackageManager pm = context.getApplicationContext().getPackageManager();
+            return pm.hasSystemFeature(PackageManager.FEATURE_CAMERA);
+        }catch (Exception e) {
+            return false;
+        }
     }
 
     public void setCaptureStrategy(CaptureStrategy strategy) {

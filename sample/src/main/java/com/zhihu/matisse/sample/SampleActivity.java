@@ -97,7 +97,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
                                             .restrictOrientation(ActivityInfo.SCREEN_ORIENTATION_PORTRAIT)
                                             .theme(new Theme(R.style.Matisse_Zhihu, ContextCompat.getColor(SampleActivity.this, R.color.white), ContextCompat.getColor(SampleActivity.this, R.color.white), ContextCompat.getColor(SampleActivity.this, R.color.black), ContextCompat.getColor(SampleActivity.this, R.color.white), true))
                                             .source(new Source(true, isSource))
-                                            .oldItems(items)
+                                            .oldItems(getApplicationContext(), items)
                                             .forResult(REQUEST_CODE_CHOOSE);
                                     break;
                                 case R.id.dracula:

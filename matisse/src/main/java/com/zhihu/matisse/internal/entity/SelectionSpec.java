@@ -64,14 +64,12 @@ public final class SelectionSpec {
     public boolean capture;
     public CaptureStrategy captureStrategy;
     public int spanCount;
-    public int gridExpectedSize;
+    public int gridExpectedSize = 3;
 
     public Source source; //是否可选原图
-    public List<String> oldItems; //是否可选原图
+    public ArrayList<Item> oldItems; //是否可选原图
 
     public List<Filter> filters;
-
-    private static SelectionSpec instance;
 
     public SelectionSpec() {
     }
@@ -94,7 +92,7 @@ public final class SelectionSpec {
         selectionSpec.gridExpectedSize = intent.getIntExtra(GRIDEXPECTEDSIZE, 0);
 
         selectionSpec.source = intent.getParcelableExtra(SOURCE);
-        selectionSpec.oldItems = intent.getStringArrayListExtra(OLDITEMS);
+        selectionSpec.oldItems = intent.getParcelableArrayListExtra(OLDITEMS);
         return selectionSpec;
     }
 
@@ -115,7 +113,7 @@ public final class SelectionSpec {
         intent.putExtra(GRIDEXPECTEDSIZE, gridExpectedSize);
 
         intent.putExtra(SOURCE, (Parcelable) source);
-        intent.putStringArrayListExtra(OLDITEMS, (ArrayList<String>) oldItems);
+        intent.putParcelableArrayListExtra(OLDITEMS, oldItems);
 
         return intent;
     }

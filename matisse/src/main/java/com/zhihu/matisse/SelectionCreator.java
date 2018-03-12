@@ -17,6 +17,7 @@
 package com.zhihu.matisse;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
 import android.support.annotation.IntDef;
@@ -32,6 +33,7 @@ import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
 import com.zhihu.matisse.internal.entity.Source;
 import com.zhihu.matisse.internal.entity.Theme;
+import com.zhihu.matisse.internal.utils.PathUtils;
 import com.zhihu.matisse.ui.MatisseActivity;
 
 import java.lang.annotation.Retention;
@@ -265,8 +267,14 @@ public final class SelectionCreator {
         return this;
     }
 
+    public SelectionCreator oldItems(Context context, List<String> items) {
+        if (items != null && !items.isEmpty()) {
+            oldItems(PathUtils.path2Item(context, items));
+        }
+        return this;
+    }
 
-    public SelectionCreator oldItems(List<String> items) {
+    public SelectionCreator oldItems(ArrayList<Item> items) {
         mSelectionSpec.oldItems = items;
         return this;
     }

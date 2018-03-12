@@ -140,9 +140,9 @@ public class PathUtils {
         return "com.android.providers.media.documents".equals(uri.getAuthority());
     }
 
-    public static List<Item> path2Item(Context context, @NonNull List<String> paths) {
+    public static ArrayList<Item> path2Item(Context context, @NonNull List<String> paths) {
         String selection = AlbumMediaLoader.SELECTION_ALL + " AND " + MediaStore.MediaColumns.DATA + "=?";
-        List<Item> items = new ArrayList<>(paths.size());
+        ArrayList<Item> items = new ArrayList<>(paths.size());
         for (String path : paths) {
             String[] args = new String[AlbumMediaLoader.SELECTION_ALL_ARGS.length + 1];
             for (int i = 0; i < AlbumMediaLoader.SELECTION_ALL_ARGS.length; i++) {

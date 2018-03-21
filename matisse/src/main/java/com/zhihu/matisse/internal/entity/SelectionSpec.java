@@ -63,8 +63,8 @@ public final class SelectionSpec {
 
     public boolean capture;
     public CaptureStrategy captureStrategy;
-    public int spanCount;
-    public int gridExpectedSize = 3;
+    public int spanCount = 3;
+    public int gridExpectedSize;
 
     public Source source; //是否可选原图
     public ArrayList<Item> oldItems; //是否可选原图

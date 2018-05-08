@@ -40,6 +40,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.AppCompatCheckBox;
 import android.support.v7.widget.Toolbar;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.MenuItem;
 import android.view.View;
@@ -290,19 +291,21 @@ public class MatisseActivity extends AppCompatActivity implements
             Uri contentUri = mMediaStoreCompat.getCurrentPhotoUri();
             String path = mMediaStoreCompat.getCurrentPhotoPath();
 
-            sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(path))));
+            if (!TextUtils.isEmpty(path)) {
+                sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(path))));
 
-            Item item = new Item(Item.ITEM_ID_CAPTURE_IMAGE, path, MimeType.JPEG.toString(), new File(path).length(), 0);
-            ArrayList<Item> selectedItems = new ArrayList<>();
-            selectedItems.add(item);
-            Intent result = new Intent();
-            result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedItems);
-            result.putExtra(EXTRA_RESULT_SOURCE, mCbSource.isChecked());
-            setResult(RESULT_OK, result);
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
-                MatisseActivity.this.revokeUriPermission(contentUri,
-                        Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
-            finish();
+                Item item = new Item(Item.ITEM_ID_CAPTURE_IMAGE, path, MimeType.JPEG.toString(), new File(path).length(), 0);
+                ArrayList<Item> selectedItems = new ArrayList<>();
+                selectedItems.add(item);
+                Intent result = new Intent();
+                result.putParcelableArrayListExtra(EXTRA_RESULT_SELECTION, selectedItems);
+                result.putExtra(EXTRA_RESULT_SOURCE, mCbSource.isChecked());
+                setResult(RESULT_OK, result);
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.LOLLIPOP)
+                    MatisseActivity.this.revokeUriPermission(contentUri,
+                            Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
+                finish();
+            }
         }
     }
 
@@ -442,7 +445,7 @@ public class MatisseActivity extends AppCompatActivity implements
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == REQUEST_CAMERA_PERMISSION_CODE) {
-            if (grantResults != null && grantResults.length > 0) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                 mMediaStoreCompat.dispatchCaptureIntent(this, REQUEST_CODE_CAPTURE);
             }
         }

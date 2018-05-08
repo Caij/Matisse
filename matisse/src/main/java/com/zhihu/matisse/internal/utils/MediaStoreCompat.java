@@ -27,7 +27,10 @@ import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
 import android.support.v4.content.FileProvider;
 import android.support.v4.os.EnvironmentCompat;
+import android.util.Log;
+import android.widget.Toast;
 
+import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.CaptureStrategy;
 
 import java.io.File;
@@ -39,6 +42,8 @@ import java.util.List;
 import java.util.Locale;
 
 public class MediaStoreCompat {
+
+    private static final String TAG = "MediaStoreCompat";
 
     private final WeakReference<Activity> mContext;
     private final WeakReference<Fragment> mFragment;
@@ -100,10 +105,16 @@ public class MediaStoreCompat {
                                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION | Intent.FLAG_GRANT_READ_URI_PERMISSION);
                     }
                 }
-                if (mFragment != null) {
-                    mFragment.get().startActivityForResult(captureIntent, requestCode);
-                } else {
-                    mContext.get().startActivityForResult(captureIntent, requestCode);
+
+                try {
+                    if (mFragment != null) {
+                        mFragment.get().startActivityForResult(captureIntent, requestCode);
+                    } else {
+                        mContext.get().startActivityForResult(captureIntent, requestCode);
+                    }
+                } catch (Exception e) {
+                    Toast.makeText(context.getApplicationContext(), R.string.error_no_permission, Toast.LENGTH_SHORT).show();
+                    Log.e(TAG, e.getMessage());
                 }
             }
         }
@@ -131,7 +142,10 @@ public class MediaStoreCompat {
         }
 
         if (!tempFile.getParentFile().exists()) {
-            tempFile.getParentFile().mkdirs();
+            boolean isSuccess = tempFile.getParentFile().mkdirs();
+            if (!isSuccess) {
+                throw new IOException("create dir error");
+            }
         }
 
         return tempFile;

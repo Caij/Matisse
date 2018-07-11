@@ -267,18 +267,6 @@ public final class SelectionCreator {
         return this;
     }
 
-    public SelectionCreator oldItems(Context context, List<String> items) {
-        if (items != null && !items.isEmpty()) {
-            oldItems(PathUtils.path2Item(context, items));
-        }
-        return this;
-    }
-
-    public SelectionCreator oldItems(ArrayList<Item> items) {
-        mSelectionSpec.oldItems = items;
-        return this;
-    }
-
     /**
      * Start to select media and wait for result.
      *

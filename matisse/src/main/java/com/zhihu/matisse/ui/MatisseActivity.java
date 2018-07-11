@@ -161,12 +161,6 @@ public class MatisseActivity extends AppCompatActivity implements
 
         mAlbumCollection.loadAlbums(type);
 
-        if (mSpec.oldItems != null && !mSpec.oldItems.isEmpty()) {
-            for (Item item : mSpec.oldItems) {
-                mSelectedCollection.add(item);
-            }
-        }
-
         mCbSource = findViewById(R.id.cb_source);
         if (mSpec.source != null && mSpec.source.isHaveSource) {
             mCbSource.setVisibility(View.VISIBLE);

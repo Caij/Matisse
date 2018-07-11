@@ -67,7 +67,6 @@ public final class SelectionSpec {
     public int gridExpectedSize;
 
     public Source source; //是否可选原图
-    public ArrayList<Item> oldItems; //是否可选原图
 
     public List<Filter> filters;
 
@@ -92,7 +91,6 @@ public final class SelectionSpec {
         selectionSpec.gridExpectedSize = intent.getIntExtra(GRIDEXPECTEDSIZE, 0);
 
         selectionSpec.source = intent.getParcelableExtra(SOURCE);
-        selectionSpec.oldItems = intent.getParcelableArrayListExtra(OLDITEMS);
         return selectionSpec;
     }
 
@@ -113,7 +111,6 @@ public final class SelectionSpec {
         intent.putExtra(GRIDEXPECTEDSIZE, gridExpectedSize);
 
         intent.putExtra(SOURCE, (Parcelable) source);
-        intent.putParcelableArrayListExtra(OLDITEMS, oldItems);
 
         return intent;
     }

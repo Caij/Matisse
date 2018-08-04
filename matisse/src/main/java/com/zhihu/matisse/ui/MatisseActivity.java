@@ -83,6 +83,7 @@ public class MatisseActivity extends AppCompatActivity implements
         AlbumMediaAdapter.OnPhotoCapture {
 
     private static final int REQUEST_CAMERA_PERMISSION_CODE = 1000;
+    private static final int REQUEST_MEDIA_PERMISSION_CODE = 1001;
 
     public static final String EXTRA_RESULT_SELECTION = "extra_result_selection";
     public static final String EXTRA_RESULT_SOURCE = "extra_result_source";
@@ -157,10 +158,6 @@ public class MatisseActivity extends AppCompatActivity implements
         mAlbumCollection.onCreate(this, this);
         mAlbumCollection.onRestoreInstanceState(savedInstanceState);
 
-        int type = TypeUtil.getShowType(mSpec);
-
-        mAlbumCollection.loadAlbums(type);
-
         mCbSource = findViewById(R.id.cb_source);
         if (mSpec.source != null && mSpec.source.isHaveSource) {
             mCbSource.setVisibility(View.VISIBLE);
@@ -199,6 +196,20 @@ public class MatisseActivity extends AppCompatActivity implements
         }
 
         updateBottomToolbar();
+
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+            doNext();
+        }else {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_MEDIA_PERMISSION_CODE);
+            }
+        }
+    }
+
+    private void doNext() {
+        int type = TypeUtil.getShowType(mSpec);
+
+        mAlbumCollection.loadAlbums(type);
     }
 
     @RequiresApi(api = Build.VERSION_CODES.M)
@@ -441,6 +452,10 @@ public class MatisseActivity extends AppCompatActivity implements
         if (requestCode == REQUEST_CAMERA_PERMISSION_CODE) {
             if (ContextCompat.checkSelfPermission(this, Manifest.permission.CAMERA) == PackageManager.PERMISSION_GRANTED) {
                 mMediaStoreCompat.dispatchCaptureIntent(this, REQUEST_CODE_CAPTURE);
+            }
+        } else if (requestCode == REQUEST_MEDIA_PERMISSION_CODE) {
+            if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+               doNext();
             }
         }
     }

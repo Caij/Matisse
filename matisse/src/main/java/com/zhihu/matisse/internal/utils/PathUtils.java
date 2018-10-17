@@ -9,7 +9,7 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
-import android.support.annotation.NonNull;
+import androidx.annotation.NonNull;
 
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.loader.AlbumMediaLoader;

@@ -17,29 +17,24 @@
 package com.zhihu.matisse;
 
 import android.app.Activity;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
-import android.support.annotation.IntDef;
-import android.support.annotation.NonNull;
-import android.support.annotation.RequiresApi;
-import android.support.annotation.StyleRes;
-import android.support.v4.app.Fragment;
+import androidx.annotation.IntDef;
+import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
+import androidx.annotation.StyleRes;
+import androidx.fragment.app.Fragment;
 
-import com.zhihu.matisse.engine.ImageEngine;
 import com.zhihu.matisse.filter.Filter;
 import com.zhihu.matisse.internal.entity.CaptureStrategy;
-import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
 import com.zhihu.matisse.internal.entity.Source;
 import com.zhihu.matisse.internal.entity.Theme;
-import com.zhihu.matisse.internal.utils.PathUtils;
 import com.zhihu.matisse.ui.MatisseActivity;
 
 import java.lang.annotation.Retention;
 import java.lang.annotation.RetentionPolicy;
 import java.util.ArrayList;
-import java.util.List;
 import java.util.Set;
 
 import static android.content.pm.ActivityInfo.SCREEN_ORIENTATION_BEHIND;
@@ -207,7 +202,7 @@ public final class SelectionCreator {
 
     /**
      * Capture strategy provided for the location to save photos including internal and external
-     * storage and also a authority for {@link android.support.v4.content.FileProvider}.
+     * storage and also a authority for {@link androidx.core.content.FileProvider}.
      *
      * @param captureStrategy {@link CaptureStrategy}, needed only when capturing is enabled.
      * @return {@link SelectionCreator} for fluent API.

@@ -18,10 +18,10 @@ package com.zhihu.matisse.internal.ui;
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.view.ViewPager;
-import android.support.v7.app.AppCompatActivity;
-import android.support.v7.widget.AppCompatCheckBox;
+import androidx.annotation.Nullable;
+import androidx.viewpager.widget.ViewPager;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.AppCompatCheckBox;
 import android.view.View;
 import android.view.WindowManager;
 import android.widget.CompoundButton;
@@ -34,11 +34,9 @@ import com.zhihu.matisse.internal.entity.SelectionSpec;
 import com.zhihu.matisse.internal.model.SelectedItemCollection;
 import com.zhihu.matisse.internal.ui.adapter.PreviewPagerAdapter;
 import com.zhihu.matisse.internal.ui.widget.CheckView;
-import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
 import com.zhihu.matisse.internal.utils.Platform;
 import com.zhihu.matisse.internal.utils.SizeUtils;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public abstract class BasePreviewActivity extends AppCompatActivity implements View.OnClickListener,

@@ -2,8 +2,8 @@ package com.zhihu.matisse.internal.entity;
 
 import android.os.Parcel;
 import android.os.Parcelable;
-import android.support.annotation.ColorInt;
-import android.support.annotation.StyleRes;
+import androidx.annotation.ColorInt;
+import androidx.annotation.StyleRes;
 
 import com.zhihu.matisse.R;
 

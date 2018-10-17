@@ -17,21 +17,18 @@ package com.zhihu.matisse.internal.ui;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
-import android.graphics.Point;
 import android.os.Bundle;
-import android.support.annotation.Nullable;
-import android.support.v4.app.Fragment;
+import androidx.annotation.Nullable;
+import androidx.fragment.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 import com.github.chrisbanes.photoview.PhotoView;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Item;
-import com.zhihu.matisse.internal.entity.SelectionSpec;
 import com.zhihu.matisse.internal.ui.widget.BigImageView;
 import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
 

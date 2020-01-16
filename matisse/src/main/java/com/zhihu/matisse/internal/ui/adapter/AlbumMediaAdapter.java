@@ -20,6 +20,8 @@ import android.content.res.TypedArray;
 import android.database.Cursor;
 import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
+
+import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
@@ -37,8 +39,10 @@ import com.zhihu.matisse.internal.model.SelectedItemCollection;
 import com.zhihu.matisse.internal.ui.widget.CheckView;
 import com.zhihu.matisse.internal.ui.widget.MediaGrid;
 
+import java.util.List;
+
 public class AlbumMediaAdapter extends
-        RecyclerViewCursorAdapter<RecyclerView.ViewHolder> implements
+        RecyclerView.Adapter<RecyclerView.ViewHolder> implements
         MediaGrid.OnMediaGridClickListener {
 
     private static final int VIEW_TYPE_CAPTURE = 0x01;
@@ -50,9 +54,9 @@ public class AlbumMediaAdapter extends
     private OnMediaClickListener mOnMediaClickListener;
     private RecyclerView mRecyclerView;
     private int mImageResize;
+    private List<Item> items;
 
     public AlbumMediaAdapter(Context context, SelectedItemCollection selectedCollection, RecyclerView recyclerView, SelectionSpec selectionSpec) {
-        super(null);
         mSelectionSpec = selectionSpec;
         mSelectedCollection = selectedCollection;
 
@@ -85,7 +89,7 @@ public class AlbumMediaAdapter extends
     }
 
     @Override
-    protected void onBindViewHolder(final RecyclerView.ViewHolder holder, Cursor cursor) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         if (holder instanceof CaptureViewHolder) {
             CaptureViewHolder captureViewHolder = (CaptureViewHolder) holder;
             Drawable[] drawables = captureViewHolder.mHint.getCompoundDrawables();
@@ -112,7 +116,7 @@ public class AlbumMediaAdapter extends
         } else if (holder instanceof MediaViewHolder) {
             MediaViewHolder mediaViewHolder = (MediaViewHolder) holder;
 
-            final Item item = Item.valueOf(cursor);
+            final Item item = items.get(position);
             mediaViewHolder.mMediaGrid.preBindMedia(new MediaGrid.PreBindInfo(
                     mPlaceholder,
                     mSelectionSpec.countable,
@@ -122,6 +126,12 @@ public class AlbumMediaAdapter extends
             mediaViewHolder.mMediaGrid.setOnMediaGridClickListener(this);
             setCheckStatus(item, mediaViewHolder.mMediaGrid);
         }
+    }
+
+    @Override
+    public int getItemCount() {
+        if (items == null) return 0;
+        return items.size();
     }
 
     private void setCheckStatus(Item item, MediaGrid mediaGrid) {
@@ -197,9 +207,11 @@ public class AlbumMediaAdapter extends
     }
 
     @Override
-    public int getItemViewType(int position, Cursor cursor) {
-        return Item.valueOf(cursor).isCapture() ? VIEW_TYPE_CAPTURE : VIEW_TYPE_MEDIA;
+    public int getItemViewType(int position) {
+        Item item = items.get(position);
+        return item.isCapture() ? VIEW_TYPE_CAPTURE : VIEW_TYPE_MEDIA;
     }
+
 
     private boolean assertAddSelection(Context context, Item item) {
         IncapableCause cause = mSelectedCollection.isAcceptable(item);
@@ -223,22 +235,8 @@ public class AlbumMediaAdapter extends
         mOnMediaClickListener = null;
     }
 
-    public void refreshSelection() {
-        GridLayoutManager layoutManager = (GridLayoutManager) mRecyclerView.getLayoutManager();
-        int first = layoutManager.findFirstVisibleItemPosition();
-        int last = layoutManager.findLastVisibleItemPosition();
-        if (first == -1 || last == -1) {
-            return;
-        }
-        Cursor cursor = getCursor();
-        for (int i = first; i <= last; i++) {
-            RecyclerView.ViewHolder holder = mRecyclerView.findViewHolderForAdapterPosition(first);
-            if (holder instanceof MediaViewHolder) {
-                if (cursor.moveToPosition(i)) {
-                    setCheckStatus(Item.valueOf(cursor), ((MediaViewHolder) holder).mMediaGrid);
-                }
-            }
-        }
+    public void setItems(List<Item> items) {
+        this.items = items;
     }
 
     public interface CheckStateListener {

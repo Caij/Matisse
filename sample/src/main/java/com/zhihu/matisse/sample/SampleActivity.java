@@ -52,7 +52,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
 
     private UriAdapter mAdapter;
 
-    List<String> items;
+    List<Uri> items;
     private boolean isSource;
 
     @Override

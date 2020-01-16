@@ -16,13 +16,13 @@
 apply plugin: 'com.android.application'
 
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    compileSdkVersion 29
+    buildToolsVersion "29.0.2"
 
     defaultConfig {
         applicationId 'com.zhihu.matisse.sample'
         minSdkVersion 14
-        targetSdkVersion 28
+        targetSdkVersion 29
         versionCode 1
         versionName "1.0"
     }
@@ -45,6 +45,9 @@ dependencies {
     implementation 'androidx.recyclerview:recyclerview:1.0.0'
     implementation 'com.tbruyelle.rxpermissions2:rxpermissions:0.9.1@aar'
     implementation 'io.reactivex.rxjava2:rxjava:2.0.5'
-    implementation 'com.github.bumptech.glide:glide:3.7.0'
+
+    implementation 'com.github.bumptech.glide:glide:4.11.0'
+    annotationProcessor 'com.github.bumptech.glide:compiler:4.11.0'
+
     implementation 'com.squareup.picasso:picasso:2.5.2'
 }

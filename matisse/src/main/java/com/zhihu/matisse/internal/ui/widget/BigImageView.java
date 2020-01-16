@@ -5,6 +5,7 @@ import android.animation.ValueAnimator;
 import android.content.Context;
 import android.graphics.Bitmap;
 import android.graphics.PointF;
+import android.net.Uri;
 import android.util.AttributeSet;
 import android.view.MotionEvent;
 import android.view.View;
@@ -14,6 +15,8 @@ import android.widget.FrameLayout;
 import com.davemorrissey.labs.subscaleview.ImageSource;
 import com.davemorrissey.labs.subscaleview.SubsamplingScaleImageView;
 import com.zhihu.matisse.R;
+
+import java.net.URI;
 
 /**
  * Created by Ca1j on 2017/1/18.
@@ -108,7 +111,7 @@ public class BigImageView extends FrameLayout implements SubsamplingScaleImageVi
         mSubsamplingScaleImageView.setDebug(debug);
     }
 
-    public void setImage(String uri) {
+    public void setImage(Uri uri) {
         mSubsamplingScaleImageView.setImage(ImageSource.uri(uri));
     }
 

@@ -15,15 +15,15 @@
  */
 package com.zhihu.matisse.internal.utils;
 
+import android.content.Context;
 import android.media.ExifInterface;
-import android.text.TextUtils;
+import android.net.Uri;
+import android.os.Build;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
+import java.io.FileDescriptor;
 import java.io.IOException;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.TimeZone;
 
 /**
  * Bug fixture for ExifInterface constructor.
@@ -45,54 +45,23 @@ final class ExifInterfaceCompat {
      * Google Play crash report system cannot perceive this crash, so this method will throw
      * {@link NullPointerException} when the filename is null.
      *
-     * @param filename a JPEG filename.
+     * @param uri a JPEG filename.
+     * @param context
      * @return {@link ExifInterface} instance.
      * @throws IOException something wrong with I/O.
      */
-    public static ExifInterface newInstance(String filename) throws IOException {
-        if (filename == null) throw new NullPointerException("filename should not be null");
-        return new ExifInterface(filename);
+    public static ExifInterface newInstance(Context context, Uri uri) throws IOException {
+        if (uri == null) throw new NullPointerException("filename should not be null");
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.N) {
+            ParcelFileDescriptor parcelFileDescriptor =
+                    context.getContentResolver().openFileDescriptor(uri, "r");
+            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+            return new ExifInterface(fileDescriptor);
+        } else {
+            return new ExifInterface(PathUtils.getPath(context, uri));
+        }
     }
 
-    private static Date getExifDateTime(String filepath) {
-        ExifInterface exif;
-        try {
-            // ExifInterface does not check whether file path is null or not,
-            // so passing null file path argument to its constructor causing SIGSEGV.
-            // We should avoid such a situation by checking file path string.
-            exif = newInstance(filepath);
-        } catch (IOException ex) {
-            Log.e(TAG, "cannot read exif", ex);
-            return null;
-        }
-
-        String date = exif.getAttribute(ExifInterface.TAG_DATETIME);
-        if (TextUtils.isEmpty(date)) {
-            return null;
-        }
-        try {
-            SimpleDateFormat formatter = new SimpleDateFormat("yyyy:MM:dd HH:mm:ss");
-            formatter.setTimeZone(TimeZone.getTimeZone("UTC"));
-            return formatter.parse(date);
-        } catch (ParseException e) {
-            Log.d(TAG, "failed to parse date taken", e);
-        }
-        return null;
-    }
-
-    /**
-     * Read exif info and get datetime value of the photo.
-     *
-     * @param filepath to get datetime
-     * @return when a photo taken.
-     */
-    public static long getExifDateTimeInMillis(String filepath) {
-        Date datetime = getExifDateTime(filepath);
-        if (datetime == null) {
-            return -1;
-        }
-        return datetime.getTime();
-    }
 
     /**
      * Read exif info and get orientation value of the photo.
@@ -100,13 +69,13 @@ final class ExifInterfaceCompat {
      * @param filepath to get exif.
      * @return exif orientation value
      */
-    public static int getExifOrientation(String filepath) {
+    public static int getExifOrientation(Context context, Uri filepath) {
         ExifInterface exif;
         try {
             // ExifInterface does not check whether file path is null or not,
             // so passing null file path argument to its constructor causing SIGSEGV.
             // We should avoid such a situation by checking file path string.
-            exif = newInstance(filepath);
+            exif = newInstance(context, filepath);
         } catch (IOException ex) {
             Log.e(TAG, "cannot read exif", ex);
             return EXIF_DEGREE_FALLBACK_VALUE;

@@ -95,11 +95,11 @@ public final class Matisse {
     }
 
 
-    public static List<String> obtainPathResult(Intent data) {
+    public static List<Uri> obtainPathResult(Intent data) {
         List<Item> items = obtainResult(data);
-        List<String> paths = new ArrayList<>();
+        List<Uri> paths = new ArrayList<>();
         for (Item item : items) {
-            paths.add(item.path);
+            paths.add(item.uri);
         }
         return paths;
     }

@@ -32,6 +32,8 @@ import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.ui.widget.BigImageView;
 import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
 
+import java.io.FileNotFoundException;
+
 public class PreviewItemFragment extends Fragment {
 
     private static final String ARGS_ITEM = "args_item";
@@ -83,18 +85,22 @@ public class PreviewItemFragment extends Fragment {
         mBigImageView = view.findViewById(R.id.big_view);
 
         if (item.isGif() || item.isVideo()) {
-            Matisse.imageEngine.loadGifImage(getContext(), mPhotoView, item.path);
+            Matisse.imageEngine.loadGifImage(getContext(), mPhotoView, item.uri);
             mBigImageView.setVisibility(View.GONE);
             mPhotoView.setVisibility(View.VISIBLE);
         } else {
             mBigImageView.setVisibility(View.VISIBLE);
             mPhotoView.setVisibility(View.GONE);
-            if (PhotoMetadataUtils.isLongImage(item.path)) {
-                mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_TOP_CROP);
-            }else {
-                mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_CENTER_INSIDE);
+            try {
+                if (PhotoMetadataUtils.isLongImage(getActivity(), item.uri)) {
+                    mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_TOP_CROP);
+                }else {
+                    mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_CENTER_INSIDE);
+                }
+            } catch (FileNotFoundException e) {
+
             }
-            mBigImageView.setImage(item.path);
+            mBigImageView.setImage(item.uri);
         }
     }
 

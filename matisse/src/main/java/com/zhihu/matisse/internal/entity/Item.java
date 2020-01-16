@@ -25,6 +25,7 @@ import android.provider.MediaStore;
 import android.text.TextUtils;
 
 import com.zhihu.matisse.MimeType;
+import com.zhihu.matisse.internal.loader.AlbumLoaderV2;
 
 public class Item implements Parcelable {
 
@@ -33,24 +34,57 @@ public class Item implements Parcelable {
     public static final String ITEM_DISPLAY_NAME_CAPTURE = "Capture";
     public final long id;
     public final String mimeType;
-    public final String path;
     public final long size;
     public final long duration; // only for video, in ms
+    public final Uri uri;
 
-    public Item(long id, String path , String mimeType, long size, long duration) {
+    public Item(long id, String mimeType, long size, long duration) {
         this.id = id;
-        this.path = path;
         this.mimeType = mimeType;
         this.size = size;
         this.duration = duration;
+
+        Uri contentUri;
+        if (isImage()) {
+            contentUri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
+        } else if (isVideo()) {
+            contentUri = MediaStore.Video.Media.EXTERNAL_CONTENT_URI;
+        } else {
+            // ?
+            contentUri = MediaStore.Files.getContentUri("external");
+        }
+        this.uri = ContentUris.withAppendedId(contentUri, id);
     }
+
+    public Item(long id, Uri uri, String mimeType, long size, long duration) {
+        this.id = id;
+        this.mimeType = mimeType;
+        this.size = size;
+        this.duration = duration;
+        this.uri = uri;
+    }
+
 
     protected Item(Parcel in) {
         id = in.readLong();
         mimeType = in.readString();
-        path = in.readString();
         size = in.readLong();
         duration = in.readLong();
+        uri = in.readParcelable(Uri.class.getClassLoader());
+    }
+
+    @Override
+    public void writeToParcel(Parcel dest, int flags) {
+        dest.writeLong(id);
+        dest.writeString(mimeType);
+        dest.writeLong(size);
+        dest.writeLong(duration);
+        dest.writeParcelable(uri, flags);
+    }
+
+    @Override
+    public int describeContents() {
+        return 0;
     }
 
     public static final Creator<Item> CREATOR = new Creator<Item>() {
@@ -67,7 +101,6 @@ public class Item implements Parcelable {
 
     public static Item valueOf(Cursor cursor) {
         return new Item(cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID)),
-                cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.DATA)),
                 cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)),
                 cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns.SIZE)),
                 cursor.getLong(cursor.getColumnIndex("duration")));
@@ -127,8 +160,8 @@ public class Item implements Parcelable {
 
         return (mimeType != null && mimeType.equals(other.mimeType)
                     || (mimeType == null && other.mimeType == null))
-                && (path != null && path.equals(other.path)
-                    || (path == null && other.path == null))
+                && (uri != null && uri.equals(other.uri)
+                    || (uri == null && other.uri == null))
                 && size == other.size
                 && duration == other.duration;
     }
@@ -139,23 +172,10 @@ public class Item implements Parcelable {
         if (!TextUtils.isEmpty(mimeType)) {
             result = 31 * result + mimeType.hashCode();
         }
-        result = 31 * result + path.hashCode();
+        result = 31 * result + uri.hashCode();
         result = 31 * result + Long.valueOf(size).hashCode();
         result = 31 * result + Long.valueOf(duration).hashCode();
         return result;
     }
 
-    @Override
-    public int describeContents() {
-        return 0;
-    }
-
-    @Override
-    public void writeToParcel(Parcel dest, int flags) {
-        dest.writeLong(id);
-        dest.writeString(mimeType);
-        dest.writeString(path);
-        dest.writeLong(size);
-        dest.writeLong(duration);
-    }
 }

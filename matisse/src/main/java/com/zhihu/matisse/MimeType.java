@@ -16,9 +16,13 @@
  */
 package com.zhihu.matisse;
 
+import android.content.ContentResolver;
+import android.net.Uri;
 import android.text.TextUtils;
 import androidx.collection.ArraySet;
 import android.webkit.MimeTypeMap;
+
+import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
 
 import java.util.Arrays;
 import java.util.EnumSet;
@@ -119,12 +123,13 @@ public enum MimeType {
         return mMimeTypeName;
     }
 
-    public boolean checkType(String mimeType, String path) {
+    public boolean checkType(ContentResolver resolver, Uri uri) {
         MimeTypeMap map = MimeTypeMap.getSingleton();
-        if (TextUtils.isEmpty(mimeType)) {
+        if (uri == null) {
             return false;
         }
-        String type = map.getExtensionFromMimeType(mimeType);
+        String type = map.getExtensionFromMimeType(resolver.getType(uri));
+        String path = null;
         // lazy load the path and prevent resolve for multiple times
         boolean pathParsed = false;
         for (String extension : mExtensions) {
@@ -133,6 +138,7 @@ public enum MimeType {
             }
             if (!pathParsed) {
                 // we only resolve the path for one time
+                path = PhotoMetadataUtils.getPath(resolver, uri);
                 if (!TextUtils.isEmpty(path)) {
                     path = path.toLowerCase(Locale.US);
                 }

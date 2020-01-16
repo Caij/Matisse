@@ -18,9 +18,16 @@ package com.zhihu.matisse.engine.impl;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
+import android.util.Log;
 import android.widget.ImageView;
 
+import androidx.annotation.Nullable;
+
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.zhihu.matisse.engine.ImageEngine;
 
 /**
@@ -30,22 +37,22 @@ import com.zhihu.matisse.engine.ImageEngine;
 public class GlideEngine implements ImageEngine {
 
     @Override
-    public void loadThumbnail(Context context, Drawable placeholder, ImageView imageView, String path) {
-        Glide.with(context).load(path).asBitmap().centerCrop().placeholder(placeholder).into(imageView);
+    public void loadThumbnail(Context context, Drawable placeholder, ImageView imageView, Uri path) {
+        Glide.with(context).load(path).centerCrop().placeholder(placeholder).into(imageView);
     }
 
     @Override
-    public void loadGifThumbnail(Context context, Drawable placeholder, ImageView imageView, String path) {
-        Glide.with(context).load(path).asBitmap().centerCrop().placeholder(placeholder).into(imageView);
+    public void loadGifThumbnail(Context context, Drawable placeholder, ImageView imageView, Uri path) {
+        Glide.with(context).load(path).centerCrop().placeholder(placeholder).into(imageView);
     }
 
     @Override
     public void loadImage(Context context, ImageView imageView, String path) {
-        Glide.with(context).load(path).asBitmap().fitCenter().into(imageView);
+        Glide.with(context).load(path).fitCenter().into(imageView);
     }
 
     @Override
-    public void loadGifImage(Context context, ImageView imageView, String path) {
+    public void loadGifImage(Context context, ImageView imageView, Uri path) {
         Glide.with(context).load(path).fitCenter().into(imageView);
     }
 

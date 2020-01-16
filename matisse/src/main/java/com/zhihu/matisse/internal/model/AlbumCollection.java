@@ -17,28 +17,31 @@
 package com.zhihu.matisse.internal.model;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.os.Bundle;
+
+import androidx.annotation.NonNull;
 import androidx.fragment.app.FragmentActivity;
-import androidx.loader.app.LoaderManager;
 import androidx.loader.content.Loader;
 
-import com.zhihu.matisse.internal.loader.AlbumLoader;
+import com.zhihu.matisse.internal.entity.Album;
+import com.zhihu.matisse.internal.loader.AlbumLoaderV2;
+import com.zhihu.matisse.internal.loader.Callback;
 
 import java.lang.ref.WeakReference;
+import java.util.List;
 
-public class AlbumCollection implements LoaderManager.LoaderCallbacks<Cursor> {
+public class AlbumCollection implements Callback<List<Album>> {
     private static final int LOADER_ID = 1;
     private static final String STATE_CURRENT_SELECTION = "state_current_selection";
     private static final String ARGS_TYPE = "args_type";
     private WeakReference<Context> mContext;
-    private LoaderManager mLoaderManager;
     private AlbumCallbacks mCallbacks;
     private int mCurrentSelection;
     private boolean mLoadFinished;
+    private AlbumLoaderV2 albumLoaderV2;
 
-    @Override
-    public Loader<Cursor> onCreateLoader(int id, Bundle args) {
+
+    public AlbumLoaderV2 onCreateLoader(int id, Bundle args) {
         Context context = mContext.get();
         if (context == null) {
             return null;
@@ -48,24 +51,10 @@ public class AlbumCollection implements LoaderManager.LoaderCallbacks<Cursor> {
 
         int type = args.getInt(ARGS_TYPE);
 
-        return AlbumLoader.newInstance(context, type);
+        return AlbumLoaderV2.newInstance(context, type, this);
     }
 
-    @Override
-    public void onLoadFinished(Loader<Cursor> loader, Cursor data) {
-        Context context = mContext.get();
-        if (context == null) {
-            return;
-        }
-
-        if (!mLoadFinished) {
-            mLoadFinished = true;
-            mCallbacks.onAlbumLoad(data);
-        }
-    }
-
-    @Override
-    public void onLoaderReset(Loader<Cursor> loader) {
+    public void onLoaderReset(@NonNull Loader<List<Album>> loader) {
         Context context = mContext.get();
         if (context == null) {
             return;
@@ -76,7 +65,6 @@ public class AlbumCollection implements LoaderManager.LoaderCallbacks<Cursor> {
 
     public void onCreate(FragmentActivity activity, AlbumCallbacks callbacks) {
         mContext = new WeakReference<Context>(activity);
-        mLoaderManager = activity.getSupportLoaderManager();
         mCallbacks = callbacks;
     }
 
@@ -93,14 +81,15 @@ public class AlbumCollection implements LoaderManager.LoaderCallbacks<Cursor> {
     }
 
     public void onDestroy() {
-        mLoaderManager.destroyLoader(LOADER_ID);
+        if (albumLoaderV2 != null) albumLoaderV2.cancelLoadInBackground();
         mCallbacks = null;
     }
 
     public void loadAlbums(int type) {
         Bundle bundle = new Bundle();
         bundle.putInt(ARGS_TYPE, type);
-        mLoaderManager.initLoader(LOADER_ID, bundle, this);
+        albumLoaderV2 = onCreateLoader(type, bundle);
+        albumLoaderV2.startLoad();
     }
 
     public int getCurrentSelection() {
@@ -111,8 +100,21 @@ public class AlbumCollection implements LoaderManager.LoaderCallbacks<Cursor> {
         mCurrentSelection = currentSelection;
     }
 
+    @Override
+    public void onResult(List<Album> albums) {
+        Context context = mContext.get();
+        if (context == null) {
+            return;
+        }
+
+        if (!mLoadFinished) {
+            mLoadFinished = true;
+            mCallbacks.onAlbumLoad(albums);
+        }
+    }
+
     public interface AlbumCallbacks {
-        void onAlbumLoad(Cursor cursor);
+        void onAlbumLoad(List<Album> data);
 
         void onAlbumReset();
     }

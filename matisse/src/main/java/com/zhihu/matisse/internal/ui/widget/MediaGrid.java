@@ -20,6 +20,7 @@ import android.graphics.drawable.Drawable;
 import androidx.recyclerview.widget.RecyclerView;
 import android.text.format.DateUtils;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.ImageView;
@@ -112,10 +113,10 @@ public class MediaGrid extends SquareFrameLayout implements View.OnClickListener
     private void setImage() {
         if (mMedia.isGif()) {
             Matisse.imageEngine.loadGifThumbnail(getContext(),
-                    mPreBindInfo.mPlaceholder, mThumbnail, mMedia.path);
+                    mPreBindInfo.mPlaceholder, mThumbnail, mMedia.uri);
         } else {
             Matisse.imageEngine.loadThumbnail(getContext(),
-                    mPreBindInfo.mPlaceholder, mThumbnail, mMedia.path);
+                    mPreBindInfo.mPlaceholder, mThumbnail, mMedia.uri);
         }
     }
 

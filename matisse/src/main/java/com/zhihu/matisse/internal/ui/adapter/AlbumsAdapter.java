@@ -23,6 +23,7 @@ import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.BaseAdapter;
 import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -33,42 +34,55 @@ import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
 
 import java.io.File;
+import java.util.List;
 
-public class AlbumsAdapter extends CursorAdapter {
+public class AlbumsAdapter extends BaseAdapter {
 
     private final Drawable mPlaceholder;
+    private List<Album> albums;
 
-    public AlbumsAdapter(Context context, Cursor c, boolean autoRequery) {
-        super(context, c, autoRequery);
 
+    public AlbumsAdapter(Context context) {
         TypedArray ta = context.getTheme().obtainStyledAttributes(
                 new int[]{R.attr.album_thumbnail_placeholder});
         mPlaceholder = ta.getDrawable(0);
         ta.recycle();
     }
 
-    public AlbumsAdapter(Context context, Cursor c, int flags) {
-        super(context, c, flags);
-
-        TypedArray ta = context.getTheme().obtainStyledAttributes(
-                new int[]{R.attr.album_thumbnail_placeholder});
-        mPlaceholder = ta.getDrawable(0);
-        ta.recycle();
+    public void setAlbums(List<Album> albums) {
+        this.albums = albums;
     }
 
     @Override
-    public View newView(Context context, Cursor cursor, ViewGroup parent) {
-        return LayoutInflater.from(context).inflate(R.layout.album_list_item, parent, false);
+    public int getCount() {
+        return albums == null ? 0 : albums.size();
     }
 
     @Override
-    public void bindView(View view, Context context, Cursor cursor) {
-        Album album = Album.valueOf(cursor);
+    public Album getItem(int i) {
+        return albums.get(i);
+    }
+
+    @Override
+    public long getItemId(int i) {
+        return i;
+    }
+
+    @Override
+    public View getView(int i, View view, ViewGroup viewGroup) {
+        Context context = viewGroup.getContext();
+        if (view == null) {
+            view = LayoutInflater.from(context).inflate(R.layout.album_list_item, viewGroup, false);
+        }
+
+        Album album = albums.get(i);
         ((TextView) view.findViewById(R.id.album_name)).setText(album.getDisplayName(context));
-        ((TextView) view.findViewById(R.id.album_media_count)).setText(String.valueOf(album.getCount()));
+        ((TextView) view.findViewById(R.id.album_media_count)).setText(String.valueOf(album.items.size()));
 
         // do not need to load animated Gif
         Matisse.imageEngine.loadThumbnail(context, mPlaceholder,
-                (ImageView) view.findViewById(R.id.album_cover), album.getCoverPath());
+                (ImageView) view.findViewById(R.id.album_cover), album.mCoverPath);
+
+        return view;
     }
 }

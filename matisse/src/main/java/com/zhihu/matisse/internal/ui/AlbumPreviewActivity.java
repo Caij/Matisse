@@ -22,20 +22,18 @@ import androidx.annotation.Nullable;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
-import com.zhihu.matisse.internal.model.AlbumMediaCollection;
 import com.zhihu.matisse.internal.ui.adapter.PreviewPagerAdapter;
 import com.zhihu.matisse.internal.utils.TypeUtil;
 
 import java.util.ArrayList;
 import java.util.List;
 
-public class AlbumPreviewActivity extends BasePreviewActivity implements
-        AlbumMediaCollection.AlbumMediaCallbacks {
+
+public class AlbumPreviewActivity extends BasePreviewActivity {
 
     public static final String EXTRA_ALBUM = "extra_album";
     public static final String EXTRA_ITEM = "extra_item";
 
-    private AlbumMediaCollection mCollection = new AlbumMediaCollection();
 
     private boolean mIsAlreadySetPosition;
 
@@ -43,13 +41,10 @@ public class AlbumPreviewActivity extends BasePreviewActivity implements
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        mCollection.onCreate(this, this);
         Album album = getIntent().getParcelableExtra(EXTRA_ALBUM);
 
         SelectionSpec selectionSpec = SelectionSpec.createSelectionSpec(getIntent());
         int type = TypeUtil.getShowType(selectionSpec);
-
-        mCollection.load(album, type);
 
         Item item = getIntent().getParcelableExtra(EXTRA_ITEM);
         if (mSpec.countable) {
@@ -57,20 +52,8 @@ public class AlbumPreviewActivity extends BasePreviewActivity implements
         } else {
             mCheckView.setChecked(mSelectedCollection.isSelected(item));
         }
-    }
 
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        mCollection.onDestroy();
-    }
-
-    @Override
-    public void onAlbumMediaLoad(Cursor cursor) {
-        List<Item> items = new ArrayList<>();
-        while (cursor.moveToNext()) {
-            items.add(Item.valueOf(cursor));
-        }
+        List<Item> items = album.items;
         PreviewPagerAdapter adapter = (PreviewPagerAdapter) mPager.getAdapter();
         adapter.addAll(items);
         adapter.notifyDataSetChanged();
@@ -85,7 +68,8 @@ public class AlbumPreviewActivity extends BasePreviewActivity implements
     }
 
     @Override
-    public void onAlbumMediaReset() {
-
+    protected void onDestroy() {
+        super.onDestroy();
     }
+
 }

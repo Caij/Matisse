@@ -24,6 +24,7 @@ import android.graphics.BitmapFactory;
 import android.graphics.Point;
 import android.media.ExifInterface;
 import android.net.Uri;
+import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.DisplayMetrics;
 import android.util.Log;
@@ -36,6 +37,7 @@ import com.zhihu.matisse.internal.entity.SelectionSpec;
 import com.zhihu.matisse.internal.entity.IncapableCause;
 
 import java.io.File;
+import java.io.FileDescriptor;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
@@ -120,18 +122,19 @@ public final class PhotoMetadataUtils {
             return false;
         }
 
+        ContentResolver resolver = context.getContentResolver();
         for (MimeType type : selectionSpec.mimeTypeSet) {
-            if (type.checkType(item.mimeType, item.path)) {
+            if (type.checkType(resolver, item.uri)) {
                 return true;
             }
         }
         return false;
     }
 
-    private static boolean shouldRotate(String path) {
+    private static boolean shouldRotate(Context context, Uri path) {
         ExifInterface exif;
         try {
-            exif = ExifInterfaceCompat.newInstance(path);
+            exif = ExifInterfaceCompat.newInstance(context, path);
         } catch (IOException e) {
             Log.e(TAG, "could not read exif info of the image: " + path);
             return false;
@@ -147,16 +150,19 @@ public final class PhotoMetadataUtils {
         return Float.valueOf(new DecimalFormat("0.0").format((float) sizeInBytes / 1024 / 1024));
     }
 
-    public static boolean isLongImage(String path) {
+    public static boolean isLongImage(Context context, Uri path) throws FileNotFoundException {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        BitmapFactory.decodeFile(path, options);
+        ParcelFileDescriptor parcelFileDescriptor =
+                context.getContentResolver().openFileDescriptor(path, "r");
+        FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+        BitmapFactory.decodeFileDescriptor(fileDescriptor);
 
         if (options.outHeight <= 0 || options.outWidth <= 0) return false;
 
         int width;
         int height;
-        if (shouldRotate(path)) {
+        if (shouldRotate(context, path)) {
             width = options.outHeight;
             height = options.outWidth;
         }else {

@@ -60,7 +60,7 @@ public abstract class Filter {
      */
     protected boolean needFiltering(Context context, Item item) {
         for (MimeType type : constraintTypes()) {
-            if (type.checkType(item.mimeType, item.path)) {
+            if (type.checkType(context.getContentResolver(), item.uri)) {
                 return true;
             }
         }

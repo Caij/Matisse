@@ -31,20 +31,17 @@ import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
-import com.zhihu.matisse.internal.model.AlbumMediaCollection;
 import com.zhihu.matisse.internal.model.SelectedItemCollection;
 import com.zhihu.matisse.internal.ui.adapter.AlbumMediaAdapter;
 import com.zhihu.matisse.internal.ui.widget.MediaGridInset;
 import com.zhihu.matisse.internal.utils.TypeUtil;
 import com.zhihu.matisse.internal.utils.UIUtils;
 
-public class MediaSelectionFragment extends Fragment implements
-        AlbumMediaCollection.AlbumMediaCallbacks, AlbumMediaAdapter.CheckStateListener,
+public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapter.CheckStateListener,
         AlbumMediaAdapter.OnMediaClickListener {
 
     public static final String EXTRA_ALBUM = "extra_album";
 
-    private final AlbumMediaCollection mAlbumMediaCollection = new AlbumMediaCollection();
     private RecyclerView mRecyclerView;
     private AlbumMediaAdapter mAdapter;
     private SelectionProvider mSelectionProvider;
@@ -113,37 +110,21 @@ public class MediaSelectionFragment extends Fragment implements
         int spacing = getResources().getDimensionPixelSize(R.dimen.media_grid_spacing);
         mRecyclerView.addItemDecoration(new MediaGridInset(spanCount, spacing, false));
         mRecyclerView.setAdapter(mAdapter);
-        mAlbumMediaCollection.onCreate(getActivity(), this);
-
-
         int type = TypeUtil.getShowType(selectionSpec);
 
-        mAlbumMediaCollection.load(album, selectionSpec.capture, type);
+        mAdapter.setItems(album.items);
+        mAdapter.notifyDataSetChanged();
     }
 
     @Override
     public void onDestroyView() {
         super.onDestroyView();
-        mAlbumMediaCollection.onDestroy();
     }
 
     public void refreshMediaGrid() {
         mAdapter.notifyDataSetChanged();
     }
 
-    public void refreshSelection() {
-        mAdapter.refreshSelection();
-    }
-
-    @Override
-    public void onAlbumMediaLoad(Cursor cursor) {
-        mAdapter.swapCursor(cursor);
-    }
-
-    @Override
-    public void onAlbumMediaReset() {
-        mAdapter.swapCursor(null);
-    }
 
     @Override
     public void onUpdate() {

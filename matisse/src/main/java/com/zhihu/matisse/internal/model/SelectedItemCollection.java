@@ -149,11 +149,10 @@ public class SelectedItemCollection {
     public List<String> asListOfString() {
         List<String> paths = new ArrayList<>();
         for (Item item : mItems) {
-            paths.add(item.path);
+            paths.add(PathUtils.getPath(mContext, item.uri));
         }
         return paths;
     }
-
     public boolean isEmpty() {
         return mItems == null || mItems.isEmpty();
     }

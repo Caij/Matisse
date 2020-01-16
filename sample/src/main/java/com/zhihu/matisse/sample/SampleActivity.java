@@ -37,6 +37,7 @@ import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.engine.impl.GlideEngine;
 import com.zhihu.matisse.filter.Filter;
 import com.zhihu.matisse.internal.entity.CaptureStrategy;
+import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.Source;
 import com.zhihu.matisse.internal.entity.Theme;
 
@@ -134,6 +135,11 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
 //            mAdapter.setData(Matisse.obtainResult(data));
             items = Matisse.obtainPathResult(data);
             isSource = Matisse.obtainIsSourceResult(data);
+
+            for (Uri item : items) {
+                Log.d(TAG, "PATH " + item);
+            }
+
             Log.d(TAG, "isSource: " + isSource);
         }
     }

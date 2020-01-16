@@ -39,6 +39,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.Toolbar;
 import android.text.TextUtils;
+import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.AdapterView;
@@ -96,6 +97,7 @@ public class MatisseActivity extends AppCompatActivity implements
     private View mContainer;
     private View mEmptyView;
     private AppCompatCheckBox mCbSource;
+    private TextView tvCapture;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -115,11 +117,17 @@ public class MatisseActivity extends AppCompatActivity implements
             setRequestedOrientation(mSpec.orientation);
         }
 
+        tvCapture = findViewById(R.id.tv_capture);
+        tvCapture.setOnClickListener(this);
+
         if (mSpec.capture) {
             mMediaStoreCompat = new MediaStoreCompat(this);
             if (mSpec.captureStrategy == null)
                 throw new RuntimeException("Don't forget to set CaptureStrategy.");
             mMediaStoreCompat.setCaptureStrategy(mSpec.captureStrategy);
+            tvCapture.setVisibility(View.VISIBLE);
+        } else {
+            tvCapture.setVisibility(View.GONE);
         }
 
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
@@ -132,6 +140,8 @@ public class MatisseActivity extends AppCompatActivity implements
         int color = ta.getColor(0, 0);
         ta.recycle();
         navigationIcon.setColorFilter(color, PorterDuff.Mode.SRC_IN);
+
+
 
         mButtonPreview = (TextView) findViewById(R.id.button_preview);
         mButtonApply = (TextView) findViewById(R.id.button_apply);
@@ -173,6 +183,8 @@ public class MatisseActivity extends AppCompatActivity implements
         if (mSpec.theme != null) {
             toolbar.setBackgroundColor(mSpec.theme.toolbarColor);
             tvSelectedAlbum.setTextColor(mSpec.theme.toolbarActionColor);
+            tvCapture.setTextColor(mSpec.theme.toolbarActionColor);
+
             navigationIcon.setColorFilter(mSpec.theme.toolbarActionColor, PorterDuff.Mode.SRC_IN);
             Drawable drawable = ContextCompat.getDrawable(this, R.drawable.ic_arrow_drop_down_white_24dp);
             drawable.setBounds(0, 0, drawable.getIntrinsicWidth(), drawable.getIntrinsicHeight());
@@ -341,6 +353,8 @@ public class MatisseActivity extends AppCompatActivity implements
             result.putExtra(EXTRA_RESULT_SOURCE, mCbSource.isChecked());
             setResult(RESULT_OK, result);
             finish();
+        } else if (v.getId() == R.id.tv_capture) {
+            capture();
         }
     }
 

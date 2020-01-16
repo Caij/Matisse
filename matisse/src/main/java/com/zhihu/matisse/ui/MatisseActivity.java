@@ -362,6 +362,7 @@ public class MatisseActivity extends AppCompatActivity implements
     @Override
     public void onAlbumLoad(final List<Album> data) {
         mAlbumsAdapter.setAlbums(data);
+        mAlbumsAdapter.notifyDataSetChanged();
 
         // select default album.
         Handler handler = new Handler(Looper.getMainLooper());

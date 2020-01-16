@@ -37,7 +37,6 @@ public class AlbumCollection implements Callback<List<Album>> {
     private WeakReference<Context> mContext;
     private AlbumCallbacks mCallbacks;
     private int mCurrentSelection;
-    private boolean mLoadFinished;
     private AlbumLoaderV2 albumLoaderV2;
 
 
@@ -46,8 +45,6 @@ public class AlbumCollection implements Callback<List<Album>> {
         if (context == null) {
             return null;
         }
-
-        mLoadFinished = false;
 
         int type = args.getInt(ARGS_TYPE);
 
@@ -107,10 +104,7 @@ public class AlbumCollection implements Callback<List<Album>> {
             return;
         }
 
-        if (!mLoadFinished) {
-            mLoadFinished = true;
-            mCallbacks.onAlbumLoad(albums);
-        }
+        mCallbacks.onAlbumLoad(albums);
     }
 
     public interface AlbumCallbacks {

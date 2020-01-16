@@ -93,7 +93,8 @@ public class AlbumLoaderV2 {
     private AsyncTask<Void, Void, List<Album>> asyncTask;
     private Callback<List<Album>> callback;
 
-    public AlbumLoaderV2(@NonNull Context context, String selection, String[] selectionArgs, Callback<List<Album>> callback) {
+    public AlbumLoaderV2(@NonNull Context context, String selection, String[] selectionArgs,
+                         Callback<List<Album>> callback) {
         contentResolver = context.getContentResolver();
         this.selection = selection;
         this.selectionArgs = selectionArgs;
@@ -110,16 +111,47 @@ public class AlbumLoaderV2 {
             protected List<Album> doInBackground(Void... voids) {
                 List<Album> allAlbums = new ArrayList<>();
                 LongSparseArray<Album> tempMap = new LongSparseArray<>();
-                loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, 0), tempMap, allAlbums);
-
                 List<Item> allItems = new ArrayList<>();
-                Uri firstPath = null;
-                for (Album album : allAlbums) {
-                   allItems.addAll(album.items);
-                   if (firstPath == null && album.items.size() > 0) {
-                       firstPath = album.items.get(0).uri;
-                   }
-                }
+                loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, 0), tempMap, allAlbums, allItems);
+
+                Uri firstPath = allItems.isEmpty() ? null : allItems.get(0).uri;
+                Album all = new Album(Album.ALBUM_ID_ALL, firstPath, Album.ALBUM_NAME_ALL);
+                all.items = allItems;
+
+                allAlbums.add(0, all);
+
+                return allAlbums;
+            }
+
+            @Override
+            protected void onPostExecute(List<Album> albums) {
+                super.onPostExecute(albums);
+                callback.onResult(albums);
+
+                loadAll();
+            }
+        }.execute();
+    }
+
+    @SuppressLint("StaticFieldLeak")
+    private void loadAll() {
+        if (asyncTask != null) asyncTask.cancel(true);
+        asyncTask = new AsyncTask<Void, Void, List<Album>>() {
+
+            @Override
+            protected List<Album> doInBackground(Void... voids) {
+                int offset = 0;
+                int size = 0;
+                List<Album> allAlbums = new ArrayList<>();
+                LongSparseArray<Album> tempMap = new LongSparseArray<>();
+                List<Item> allItems = new ArrayList<>();
+                do{
+                    size = loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset),
+                            tempMap, allAlbums, allItems);
+                    offset += size;
+                } while (size > 0);
+
+                Uri firstPath = allItems.isEmpty() ? null : allItems.get(0).uri;
                 Album all = new Album(Album.ALBUM_ID_ALL, firstPath, Album.ALBUM_NAME_ALL);
                 all.items = allItems;
 
@@ -137,35 +169,8 @@ public class AlbumLoaderV2 {
         }.execute();
     }
 
-    @SuppressLint("StaticFieldLeak")
-    private void loadAll() {
-        if (asyncTask != null) asyncTask.cancel(true);
-        asyncTask = new AsyncTask<Void, Void, List<Album>>() {
-
-            @Override
-            protected List<Album> doInBackground(Void... voids) {
-                int offset = 0;
-                List<Album> allAlbums = new ArrayList<>();
-                LongSparseArray<Album> tempMap = new LongSparseArray<>();
-                boolean hasMore = true;
-                while (hasMore) {
-                    hasMore = loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset), tempMap, allAlbums);
-                    offset = allAlbums.size();
-                }
-                return allAlbums;
-            }
-
-            @Override
-            protected void onPostExecute(List<Album> albums) {
-                super.onPostExecute(albums);
-                callback.onResult(albums);
-
-            }
-        }.execute();
-    }
-
-    private boolean loadInBackground(String orderBy, LongSparseArray<Album> tempMap, List<Album> albums) {
-        boolean hasMore = false;
+    private int loadInBackground(String orderBy, LongSparseArray<Album> tempMap, List<Album> albums, List<Item> allItems) {
+        int size = 0;
         synchronized (this) {
             cancellationSignal = new CancellationSignal();
         }
@@ -175,7 +180,7 @@ public class AlbumLoaderV2 {
             cursor = ContentResolverCompat.query(contentResolver, QUERY_URI, PROJECTION, selection, selectionArgs,
                             orderBy, cancellationSignal);
             if (cursor != null) {
-                hasMore = cursor.getCount() >= PAGE_SIZE - 1;
+                size = cursor.getCount();
                 while (cursor.moveToNext()) {
                     Item item = Item.valueOf(cursor);
                     long bucketId = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns.BUCKET_ID));
@@ -189,8 +194,9 @@ public class AlbumLoaderV2 {
                         tempMap.put(bucketId, album);
                         albums.add(album);
                     }
-
                     album.items.add(item);
+
+                    allItems.add(item);
                 }
             }
         } finally {
@@ -201,7 +207,7 @@ public class AlbumLoaderV2 {
                 cursor.close();
             }
         }
-        return hasMore;
+        return size;
     }
 
     public void cancelLoadInBackground() {

@@ -34,7 +34,7 @@ public class Album implements Parcelable {
     private final String mId;
     public final Uri mCoverPath;
     private final String mDisplayName;
-    public List<Item> items;
+    public int itemSize;
 
     public Album(String id, Uri coverPath, String albumName) {
         mId = id;
@@ -47,7 +47,6 @@ public class Album implements Parcelable {
         mId = in.readString();
         mCoverPath = in.readParcelable(Uri.class.getClassLoader());
         mDisplayName = in.readString();
-        items = in.createTypedArrayList(Item.CREATOR);
     }
 
     @Override
@@ -55,7 +54,6 @@ public class Album implements Parcelable {
         dest.writeString(mId);
         dest.writeParcelable(mCoverPath, flags);
         dest.writeString(mDisplayName);
-        dest.writeTypedList(items);
     }
 
     @Override
@@ -92,19 +90,11 @@ public class Album implements Parcelable {
     }
 
     public boolean isEmpty() {
-        return items.size() == 0;
+        return itemSize == 0;
     }
 
     public void addCaptureCount() {
 
     }
 
-    public Album toPreview(int position) {
-        int start = Math.max(0, position - 20);
-        int end = Math.min(position + 20, items.size());
-
-        Album album = new Album(mId, mCoverPath, mDisplayName);
-        album.items = items.subList(start, end);
-        return album;
-    }
 }

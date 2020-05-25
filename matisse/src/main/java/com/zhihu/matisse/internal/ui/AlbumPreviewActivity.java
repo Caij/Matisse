@@ -22,6 +22,8 @@ import androidx.annotation.Nullable;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
+import com.zhihu.matisse.internal.loader.Callback;
+import com.zhihu.matisse.internal.loader.MediaLoaderV2;
 import com.zhihu.matisse.internal.ui.adapter.PreviewPagerAdapter;
 import com.zhihu.matisse.internal.utils.TypeUtil;
 
@@ -29,19 +31,26 @@ import java.util.ArrayList;
 import java.util.List;
 
 
-public class AlbumPreviewActivity extends BasePreviewActivity {
+public class AlbumPreviewActivity extends BasePreviewActivity implements Callback<List<Item>> {
 
     public static final String EXTRA_ALBUM = "extra_album";
     public static final String EXTRA_ITEM = "extra_item";
 
 
     private boolean mIsAlreadySetPosition;
+    private PreviewPagerAdapter adapter;
+    private MediaLoaderV2 mediaLoaderV2;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
         Album album = getIntent().getParcelableExtra(EXTRA_ALBUM);
+
+        if (album == null) {
+            finish();
+            return;
+        }
 
         SelectionSpec selectionSpec = SelectionSpec.createSelectionSpec(getIntent());
         int type = TypeUtil.getShowType(selectionSpec);
@@ -53,7 +62,24 @@ public class AlbumPreviewActivity extends BasePreviewActivity {
             mCheckView.setChecked(mSelectedCollection.isSelected(item));
         }
 
-        List<Item> items = album.items;
+        mediaLoaderV2 = MediaLoaderV2.newInstance(this, type, album.getId(), this);
+        mediaLoaderV2.startLoad();
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mediaLoaderV2 != null) {
+            mediaLoaderV2.cancelLoadInBackground();
+        }
+    }
+
+    @Override
+    public void onResult(List<Item> items) {
+        if (items.isEmpty()) {
+            return;
+        }
+
         PreviewPagerAdapter adapter = (PreviewPagerAdapter) mPager.getAdapter();
         adapter.addAll(items);
         adapter.notifyDataSetChanged();
@@ -66,10 +92,4 @@ public class AlbumPreviewActivity extends BasePreviewActivity {
             mPreviousPos = selectedIndex;
         }
     }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-    }
-
 }

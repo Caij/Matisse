@@ -2,6 +2,7 @@ package com.zhihu.matisse.internal.loader;
 
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
+import android.content.ContentUris;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
@@ -32,13 +33,8 @@ public class AlbumLoaderV2 {
 
     public static final String[] PROJECTION = {
             MediaStore.Files.FileColumns._ID,
-            MediaStore.MediaColumns.DATA,
-            MediaStore.MediaColumns.DISPLAY_NAME,
-            MediaStore.MediaColumns.MIME_TYPE,
-            MediaStore.MediaColumns.SIZE,
             MediaStore.MediaColumns.BUCKET_ID,
-            MediaStore.MediaColumns.BUCKET_DISPLAY_NAME,
-            "duration"};
+            MediaStore.MediaColumns.BUCKET_DISPLAY_NAME};
 
     // === params for showSingleMediaType: false ===
     private static final String SELECTION =
@@ -109,16 +105,13 @@ public class AlbumLoaderV2 {
 
             @Override
             protected List<Album> doInBackground(Void... voids) {
-                List<Album> allAlbums = new ArrayList<>();
                 LongSparseArray<Album> tempMap = new LongSparseArray<>();
-                List<Item> allItems = new ArrayList<>();
-                loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, 0), tempMap, allAlbums, allItems);
+                List<Album> allAlbums = new ArrayList<>();
+                int size = loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, 0), tempMap, allAlbums);
 
-                Uri firstPath = allItems.isEmpty() ? null : allItems.get(0).uri;
-                Album all = new Album(Album.ALBUM_ID_ALL, firstPath, Album.ALBUM_NAME_ALL);
-                all.items = allItems;
-
-                allAlbums.add(0, all);
+                if (!allAlbums.isEmpty()) {
+                    allAlbums.get(0).itemSize = size;
+                }
 
                 return allAlbums;
             }
@@ -144,18 +137,17 @@ public class AlbumLoaderV2 {
                 int size = 0;
                 List<Album> allAlbums = new ArrayList<>();
                 LongSparseArray<Album> tempMap = new LongSparseArray<>();
-                List<Item> allItems = new ArrayList<>();
+                int allItemCount = 0;
                 do{
                     size = loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset),
-                            tempMap, allAlbums, allItems);
+                            tempMap, allAlbums);
                     offset += size;
+                    allItemCount += size;
                 } while (size > 0);
 
-                Uri firstPath = allItems.isEmpty() ? null : allItems.get(0).uri;
-                Album all = new Album(Album.ALBUM_ID_ALL, firstPath, Album.ALBUM_NAME_ALL);
-                all.items = allItems;
-
-                allAlbums.add(0, all);
+                if (!allAlbums.isEmpty()) {
+                    allAlbums.get(0).itemSize = allItemCount;
+                }
 
                 return allAlbums;
             }
@@ -169,7 +161,7 @@ public class AlbumLoaderV2 {
         }.execute();
     }
 
-    private int loadInBackground(String orderBy, LongSparseArray<Album> tempMap, List<Album> albums, List<Item> allItems) {
+    private int loadInBackground(String orderBy, LongSparseArray<Album> tempMap, List<Album> albums) {
         int size = 0;
         synchronized (this) {
             cancellationSignal = new CancellationSignal();
@@ -182,21 +174,26 @@ public class AlbumLoaderV2 {
             if (cursor != null) {
                 size = cursor.getCount();
                 while (cursor.moveToNext()) {
-                    Item item = Item.valueOf(cursor);
+//                    Item item = Item.valueOf(cursor);
+                    long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID));
                     long bucketId = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns.BUCKET_ID));
-
+                    Uri uri = ContentUris.withAppendedId(MediaStore.Files.getContentUri("external"), id);
                     Album album = tempMap.get(bucketId);
                     if (album == null) {
                         String bucketDisplayName = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME));
-                        album = new Album(String.valueOf(bucketId), item.uri, bucketDisplayName);
-                        album.items = new ArrayList<>();
+                        album = new Album(String.valueOf(bucketId), uri, bucketDisplayName);
+
+                        if (albums.isEmpty()) {
+                            Album all = new Album(Album.ALBUM_ID_ALL, uri, Album.ALBUM_NAME_ALL);
+                            albums.add(all);
+                        }
+
+                        albums.add(album);
 
                         tempMap.put(bucketId, album);
-                        albums.add(album);
                     }
-                    album.items.add(item);
 
-                    allItems.add(item);
+                    album.itemSize = album.itemSize + 1;
                 }
             }
         } finally {

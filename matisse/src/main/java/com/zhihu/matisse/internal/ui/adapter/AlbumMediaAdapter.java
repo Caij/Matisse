@@ -55,8 +55,9 @@ public class AlbumMediaAdapter extends
     private RecyclerView mRecyclerView;
     private int mImageResize;
     private List<Item> items;
+    private Album mAlbum;
 
-    public AlbumMediaAdapter(Context context, SelectedItemCollection selectedCollection, RecyclerView recyclerView, SelectionSpec selectionSpec) {
+    public AlbumMediaAdapter(Album album, Context context, SelectedItemCollection selectedCollection, RecyclerView recyclerView, SelectionSpec selectionSpec) {
         mSelectionSpec = selectionSpec;
         mSelectedCollection = selectedCollection;
 
@@ -65,6 +66,8 @@ public class AlbumMediaAdapter extends
         ta.recycle();
 
         mRecyclerView = recyclerView;
+
+        mAlbum = album;
     }
 
     @Override
@@ -169,7 +172,7 @@ public class AlbumMediaAdapter extends
     @Override
     public void onThumbnailClicked(ImageView thumbnail, Item item, RecyclerView.ViewHolder holder) {
         if (mOnMediaClickListener != null) {
-            mOnMediaClickListener.onMediaClick(null, item, holder.getAdapterPosition());
+            mOnMediaClickListener.onMediaClick(mAlbum, item, holder.getAdapterPosition());
         }
     }
 

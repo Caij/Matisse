@@ -77,7 +77,7 @@ public class AlbumsAdapter extends BaseAdapter {
 
         Album album = albums.get(i);
         ((TextView) view.findViewById(R.id.album_name)).setText(album.getDisplayName(context));
-        ((TextView) view.findViewById(R.id.album_media_count)).setText(String.valueOf(album.items.size()));
+        ((TextView) view.findViewById(R.id.album_media_count)).setText(String.valueOf(album.itemSize));
 
         // do not need to load animated Gif
         Matisse.imageEngine.loadThumbnail(context, mPlaceholder,

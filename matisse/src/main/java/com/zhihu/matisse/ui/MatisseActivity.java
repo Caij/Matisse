@@ -38,6 +38,8 @@ import androidx.appcompat.app.ActionBar;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.appcompat.widget.Toolbar;
+
+import android.os.Parcelable;
 import android.text.TextUtils;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -429,13 +431,18 @@ public class MatisseActivity extends AppCompatActivity implements
     @Override
     public void onMediaClick(Album album, Item item, int adapterPosition) {
         Intent intent = new Intent(this, AlbumPreviewActivity.class);
-        Album preAlbum = album.toPreview(adapterPosition);
-        intent.putExtra(AlbumPreviewActivity.EXTRA_ALBUM, preAlbum);
+        intent.putExtra(AlbumPreviewActivity.EXTRA_ALBUM, album);
         intent.putExtra(AlbumPreviewActivity.EXTRA_ITEM, item);
         intent.putExtra(BasePreviewActivity.EXTRA_DEFAULT_BUNDLE, mSelectedCollection.getDataWithBundle());
         intent.putExtra(BasePreviewActivity.EXTRA_RESULT_SOURCE, mCbSource.isChecked());
         mSpec.createIntent(intent);
         startActivityForResult(intent, REQUEST_CODE_PREVIEW);
+    }
+
+    public static ArrayList<Item> toPreview(int position, List<Item> items) {
+        int start = Math.max(0, position - 1);
+        int end = Math.min(position + 1, items.size());
+        return new ArrayList<>(items.subList(start, end));
     }
 
     @Override

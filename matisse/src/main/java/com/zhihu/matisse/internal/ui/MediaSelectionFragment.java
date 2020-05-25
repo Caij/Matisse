@@ -23,6 +23,8 @@ import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+
+import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -31,14 +33,18 @@ import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.SelectionSpec;
+import com.zhihu.matisse.internal.loader.Callback;
+import com.zhihu.matisse.internal.loader.MediaLoaderV2;
 import com.zhihu.matisse.internal.model.SelectedItemCollection;
 import com.zhihu.matisse.internal.ui.adapter.AlbumMediaAdapter;
 import com.zhihu.matisse.internal.ui.widget.MediaGridInset;
 import com.zhihu.matisse.internal.utils.TypeUtil;
 import com.zhihu.matisse.internal.utils.UIUtils;
 
+import java.util.List;
+
 public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapter.CheckStateListener,
-        AlbumMediaAdapter.OnMediaClickListener {
+        AlbumMediaAdapter.OnMediaClickListener, Callback<List<Item>> {
 
     public static final String EXTRA_ALBUM = "extra_album";
 
@@ -47,6 +53,8 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
     private SelectionProvider mSelectionProvider;
     private AlbumMediaAdapter.CheckStateListener mCheckStateListener;
     private AlbumMediaAdapter.OnMediaClickListener mOnMediaClickListener;
+    private MediaLoaderV2 mediaLoaderV2;
+    private Album album;
 
     public static MediaSelectionFragment newInstance(Album album) {
         MediaSelectionFragment fragment = new MediaSelectionFragment();
@@ -88,11 +96,11 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
     @Override
     public void onActivityCreated(@Nullable Bundle savedInstanceState) {
         super.onActivityCreated(savedInstanceState);
-        Album album = getArguments().getParcelable(EXTRA_ALBUM);
+        album = getArguments().getParcelable(EXTRA_ALBUM);
 
         SelectionSpec selectionSpec = SelectionSpec.createSelectionSpec(getActivity().getIntent());
 
-        mAdapter = new AlbumMediaAdapter(getContext(),
+        mAdapter = new AlbumMediaAdapter(album, getContext(),
                 mSelectionProvider.provideSelectedItemCollection(), mRecyclerView, selectionSpec);
         mAdapter.registerCheckStateListener(this);
         mAdapter.registerOnMediaClickListener(this);
@@ -112,8 +120,10 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
         mRecyclerView.setAdapter(mAdapter);
         int type = TypeUtil.getShowType(selectionSpec);
 
-        mAdapter.setItems(album.items);
-        mAdapter.notifyDataSetChanged();
+
+
+        mediaLoaderV2 = MediaLoaderV2.newInstance(getActivity(), type, album.getId(), this);
+        mediaLoaderV2.startLoad();
     }
 
     @Override
@@ -137,9 +147,15 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
     @Override
     public void onMediaClick(Album album, Item item, int adapterPosition) {
         if (mOnMediaClickListener != null) {
-            mOnMediaClickListener.onMediaClick((Album) getArguments().getParcelable(EXTRA_ALBUM),
+            mOnMediaClickListener.onMediaClick(album,
                     item, adapterPosition);
         }
+    }
+
+    @Override
+    public void onResult(List<Item> items) {
+        mAdapter.setItems(items);
+        mAdapter.notifyDataSetChanged();
     }
 
     public interface SelectionProvider {

@@ -121,7 +121,11 @@ public class AlbumLoaderV2 {
                 super.onPostExecute(albums);
                 callback.onResult(albums);
 
-                loadAll();
+                if (!albums.isEmpty()) {
+                    if (albums.get(0).itemSize >= (PAGE_SIZE * 0.9f)) {
+                        loadAll();
+                    }
+                }
             }
         }.execute();
     }

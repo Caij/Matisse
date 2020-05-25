@@ -100,8 +100,8 @@ public class Album implements Parcelable {
     }
 
     public Album toPreview(int position) {
-        int start = Math.max(0, position - 50);
-        int end = Math.min(position + 50, items.size());
+        int start = Math.max(0, position - 20);
+        int end = Math.min(position + 20, items.size());
 
         Album album = new Album(mId, mCoverPath, mDisplayName);
         album.items = items.subList(start, end);

@@ -18,13 +18,18 @@ import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 
 import static com.zhihu.matisse.internal.loader.AlbumMediaLoader.TYPE_ONLYSHOWIMAGES;
 import static com.zhihu.matisse.internal.loader.AlbumMediaLoader.TYPE_ONLYSHOWVIDEOS;
 
 public class MediaLoaderV2 {
+
+    private static Map<String, List<Item>> mCache = new HashMap<>();
 
     private static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
 
@@ -172,7 +177,12 @@ public class MediaLoaderV2 {
                 protected void onPostExecute(List<Item> albums) {
                     super.onPostExecute(albums);
                     callback.onResult(albums);
-                    loadAll();
+
+                    if (!albums.isEmpty()) {
+                        if (albums.size() >= (PAGE_SIZE * 0.9f)) {
+                            loadAll();
+                        }
+                    }
                 }
             }.execute();
         } else {
@@ -183,28 +193,43 @@ public class MediaLoaderV2 {
     @SuppressLint("StaticFieldLeak")
     private void loadAll() {
         if (asyncTask != null) asyncTask.cancel(true);
-        asyncTask = new AsyncTask<Void, Void, List<Item>>() {
 
-            @Override
-            protected List<Item> doInBackground(Void... voids) {
-                int offset = 0;
-                int size = 0;
-                List<Item> allItems = new ArrayList<>();
-                do{
-                    size = loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset), allItems);
-                    offset += size;
-                } while (size > 0);
+        List<Item> items = mCache.get(getKey());
+        if (items == null) {
+            asyncTask = new AsyncTask<Void, Void, List<Item>>() {
 
-                return allItems;
-            }
+                @Override
+                protected List<Item> doInBackground(Void... voids) {
+                    int offset = 0;
+                    int size = 0;
+                    List<Item> allItems = new ArrayList<>();
+                    do {
+                        size = loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset), allItems);
+                        offset += size;
+                    } while (size > 0);
 
-            @Override
-            protected void onPostExecute(List<Item> albums) {
-                super.onPostExecute(albums);
-                callback.onResult(albums);
+                    return allItems;
+                }
 
-            }
-        }.execute();
+                @Override
+                protected void onPostExecute(List<Item> albums) {
+                    super.onPostExecute(albums);
+                    callback.onResult(albums);
+
+                    if (!albums.isEmpty()) {
+                        mCache.put(getKey(), albums);
+                        Log.d(TAG, "放入缓存");
+                    }
+                }
+            }.execute();
+        } else {
+            Log.d(TAG, "存在缓存，直接读取");
+            callback.onResult(items);
+        }
+    }
+
+    private String getKey() {
+        return selection + Arrays.toString(selectionArgs);
     }
 
     private int loadInBackground(String orderBy, List<Item> allItems) {
@@ -242,5 +267,9 @@ public class MediaLoaderV2 {
                 cancellationSignal.cancel();
             }
         }
+    }
+
+    public static void clearCache() {
+        mCache.clear();
     }
 }

@@ -6,6 +6,7 @@ import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -78,7 +79,7 @@ public class MediaLoaderV2 {
     private static final String SELECTION_FOR_SINGLE_MEDIA_TYPE =
             MediaStore.Files.FileColumns.MEDIA_TYPE + "=?"
                     + " AND " + MediaStore.MediaColumns.SIZE + ">0";
-    private static final String TAG = "AlbumLoaderV2";
+    private static final String TAG = "MediaLoaderV2";
     private final boolean isPreLoad;
 
     private static String[] getSelectionArgsForSingleMediaType(int mediaType) {
@@ -88,8 +89,16 @@ public class MediaLoaderV2 {
 
     private static final int PAGE_SIZE = 200;
 
-    private static final String BUCKET_ORDER_BY_PAGE = MediaStore.MediaColumns.DATE_TAKEN + " DESC limit " + PAGE_SIZE + " offset %d";
+    private static final String BUCKET_ORDER_BY_PAGE;
 //    private static final String BUCKET_ORDER_BY = MediaStore.MediaColumns.DATE_TAKEN + " DESC";
+
+    static {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            BUCKET_ORDER_BY_PAGE = MediaStore.MediaColumns.DATE_ADDED + " DESC limit " + PAGE_SIZE + " offset %d";
+        } else {
+            BUCKET_ORDER_BY_PAGE = MediaStore.MediaColumns.DATE_TAKEN + " DESC limit " + PAGE_SIZE + " offset %d";
+        }
+    }
 
     public static MediaLoaderV2 newInstance(Context context, int type, String bucketId, Callback<List<Item>> albumCallback) {
         String selection;

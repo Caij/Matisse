@@ -305,12 +305,11 @@ public class MatisseActivity extends AppCompatActivity implements
         } else if (requestCode == REQUEST_CODE_CAPTURE) {
             // Just pass the data back to previous calling Activity.
             Uri contentUri = mMediaStoreCompat.getCurrentPhotoUri();
-            String path = mMediaStoreCompat.getCurrentPhotoPath();
 
-            if (!TextUtils.isEmpty(path)) {
-                sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, Uri.fromFile(new File(path))));
+            if (contentUri != null) {
+                sendBroadcast(new Intent(Intent.ACTION_MEDIA_SCANNER_SCAN_FILE, contentUri));
 
-                Item item = new Item(Item.ITEM_ID_CAPTURE_IMAGE, contentUri, MimeType.JPEG.toString(), new File(path).length(), 0);
+                Item item = new Item(Item.ITEM_ID_CAPTURE_IMAGE, contentUri, MimeType.JPEG.toString(), 0, 0);
                 ArrayList<Item> selectedItems = new ArrayList<>();
                 selectedItems.add(item);
                 Intent result = new Intent();

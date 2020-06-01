@@ -114,6 +114,8 @@ public abstract class BasePreviewActivity extends AppCompatActivity implements V
 
             @Override
             public void onClick(View v) {
+                if (mAdapter.getCount() <=0) return;
+
                 Item item = mAdapter.getMediaItem(mPager.getCurrentItem());
                 if (mSelectedCollection.isSelected(item)) {
                     mSelectedCollection.remove(item);

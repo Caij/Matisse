@@ -101,6 +101,7 @@ public class MatisseActivity extends AppCompatActivity implements
     private View mEmptyView;
     private AppCompatCheckBox mCbSource;
     private TextView tvCapture;
+    private boolean isInitAlbum;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -393,7 +394,10 @@ public class MatisseActivity extends AppCompatActivity implements
                 if (album.isAll() && mSpec.capture) {
                     album.addCaptureCount();
                 }
-                onAlbumSelected(album);
+                if (!isInitAlbum) {
+                    onAlbumSelected(album);
+                }
+                isInitAlbum = true;
             }
         });
     }

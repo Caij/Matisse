@@ -128,6 +128,9 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
 
     @Override
     public void onDestroyView() {
+
+        mediaLoaderV2.cancelLoadInBackground();
+
         super.onDestroyView();
     }
 

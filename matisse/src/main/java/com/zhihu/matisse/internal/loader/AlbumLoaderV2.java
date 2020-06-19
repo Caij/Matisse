@@ -17,17 +17,16 @@ import androidx.core.content.ContentResolverCompat;
 import androidx.core.os.CancellationSignal;
 
 import com.zhihu.matisse.internal.entity.Album;
-import com.zhihu.matisse.internal.entity.Item;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
-import java.util.Map;
-
-import static com.zhihu.matisse.internal.loader.AlbumMediaLoader.TYPE_ONLYSHOWIMAGES;
-import static com.zhihu.matisse.internal.loader.AlbumMediaLoader.TYPE_ONLYSHOWVIDEOS;
 
 public class AlbumLoaderV2 {
+
+    public static final int TYPE_ONLYSHOWIMAGES = 1;
+    public static final int TYPE_ONLYSHOWVIDEOS = 2;
+    public static final int TYPE_ALL = 3;
 
     private static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
 
@@ -136,7 +135,7 @@ public class AlbumLoaderV2 {
                     }
                 }
             }
-        }.execute();
+        }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);;
     }
 
     @SuppressLint("StaticFieldLeak")
@@ -171,7 +170,7 @@ public class AlbumLoaderV2 {
                 callback.onResult(albums);
 
             }
-        }.execute();
+        }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);
     }
 
     private int loadInBackground(String orderBy, LongSparseArray<Album> tempMap, List<Album> albums) {

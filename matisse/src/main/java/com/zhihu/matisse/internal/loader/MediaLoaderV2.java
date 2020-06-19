@@ -24,11 +24,30 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
+import java.util.concurrent.Executor;
+import java.util.concurrent.LinkedBlockingQueue;
+import java.util.concurrent.ThreadFactory;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
+import java.util.concurrent.atomic.AtomicInteger;
 
-import static com.zhihu.matisse.internal.loader.AlbumMediaLoader.TYPE_ONLYSHOWIMAGES;
-import static com.zhihu.matisse.internal.loader.AlbumMediaLoader.TYPE_ONLYSHOWVIDEOS;
+import static com.zhihu.matisse.internal.loader.AlbumLoaderV2.TYPE_ONLYSHOWIMAGES;
+import static com.zhihu.matisse.internal.loader.AlbumLoaderV2.TYPE_ONLYSHOWVIDEOS;
 
 public class MediaLoaderV2 {
+
+    private static final int KEEP_ALIVE = 1;
+    private static final ThreadFactory sThreadFactory = new ThreadFactory() {
+        private final AtomicInteger mCount = new AtomicInteger(1);
+
+        @Override
+        public Thread newThread(Runnable r) {
+            return new Thread(r, "ModernAsyncTask #" + mCount.getAndIncrement());
+        }
+    };
+    public static final Executor THREAD_POOL_EXECUTOR =
+            new ThreadPoolExecutor(2, 4, KEEP_ALIVE,
+                    TimeUnit.SECONDS, new LinkedBlockingQueue<Runnable>(10), sThreadFactory);
 
     private static Map<String, List<Item>> mCache = new HashMap<>();
 
@@ -193,7 +212,7 @@ public class MediaLoaderV2 {
                         }
                     }
                 }
-            }.execute();
+            }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);
         } else {
             loadAll();
         }
@@ -230,7 +249,7 @@ public class MediaLoaderV2 {
                         Log.d(TAG, "放入缓存");
                     }
                 }
-            }.execute();
+            }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);
         } else {
             Log.d(TAG, "存在缓存，直接读取");
             callback.onResult(items);

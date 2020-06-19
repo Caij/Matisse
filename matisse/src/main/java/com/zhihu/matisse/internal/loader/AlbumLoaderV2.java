@@ -208,6 +208,11 @@ public class AlbumLoaderV2 {
                     album.itemSize = album.itemSize + 1;
                 }
             }
+
+            if (albums.isEmpty()) {
+                Album all = new Album(Album.ALBUM_ID_ALL, null, Album.ALBUM_NAME_ALL);
+                albums.add(all);
+            }
         } finally {
             synchronized (this) {
                 cancellationSignal = null;

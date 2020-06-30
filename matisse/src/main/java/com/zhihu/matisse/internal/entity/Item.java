@@ -29,7 +29,6 @@ import com.zhihu.matisse.internal.loader.AlbumLoaderV2;
 
 public class Item implements Parcelable {
 
-    public static final long ITEM_ID_CAPTURE = -1;
     public static final long ITEM_ID_CAPTURE_IMAGE = -2;
     public static final String ITEM_DISPLAY_NAME_CAPTURE = "Capture";
     public final long id;
@@ -104,10 +103,6 @@ public class Item implements Parcelable {
                 cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)),
                 cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns.SIZE)),
                 cursor.getLong(cursor.getColumnIndex("duration")));
-    }
-
-    public boolean isCapture() {
-        return id == ITEM_ID_CAPTURE;
     }
 
     public boolean isImage() {

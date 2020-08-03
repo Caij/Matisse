@@ -17,6 +17,7 @@ package com.zhihu.matisse.internal.ui;
 
 import android.content.ActivityNotFoundException;
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
@@ -29,6 +30,7 @@ import com.github.chrisbanes.photoview.PhotoView;
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Item;
+import com.zhihu.matisse.internal.loader.MediaLoaderV2;
 import com.zhihu.matisse.internal.ui.widget.BigImageView;
 import com.zhihu.matisse.internal.utils.PhotoMetadataUtils;
 
@@ -89,18 +91,31 @@ public class PreviewItemFragment extends Fragment {
             mBigImageView.setVisibility(View.GONE);
             mPhotoView.setVisibility(View.VISIBLE);
         } else {
+            new AsyncTask<Void, Void, Boolean>(){
+
+                @Override
+                protected Boolean doInBackground(Void... voids) {
+                    try {
+                        return PhotoMetadataUtils.isLongImage(getActivity(), item.uri);
+                    } catch (FileNotFoundException e) {
+                        e.printStackTrace();
+                    }
+                    return false;
+                }
+
+                @Override
+                protected void onPostExecute(Boolean aBoolean) {
+                    super.onPostExecute(aBoolean);
+                    if (aBoolean) {
+                        mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_TOP_CROP);
+                    }else {
+                        mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_CENTER_INSIDE);
+                    }
+                    mBigImageView.setImage(item.uri);
+                }
+            }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);
             mBigImageView.setVisibility(View.VISIBLE);
             mPhotoView.setVisibility(View.GONE);
-            try {
-                if (PhotoMetadataUtils.isLongImage(getActivity(), item.uri)) {
-                    mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_TOP_CROP);
-                }else {
-                    mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_CENTER_INSIDE);
-                }
-            } catch (FileNotFoundException e) {
-
-            }
-            mBigImageView.setImage(item.uri);
         }
     }
 

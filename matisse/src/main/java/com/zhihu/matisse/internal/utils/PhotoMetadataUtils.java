@@ -153,12 +153,11 @@ public final class PhotoMetadataUtils {
     public static boolean isLongImage(Context context, Uri path) throws FileNotFoundException {
         BitmapFactory.Options options = new BitmapFactory.Options();
         options.inJustDecodeBounds = true;
-        ParcelFileDescriptor parcelFileDescriptor = null;
+        InputStream inputStream = null;
         try {
-            parcelFileDescriptor =
-                    context.getContentResolver().openFileDescriptor(path, "r");
-            FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
-            BitmapFactory.decodeFileDescriptor(fileDescriptor);
+            inputStream =
+                    context.getContentResolver().openInputStream(path);
+            BitmapFactory.decodeStream(inputStream, null, options);
 
             if (options.outHeight <= 0 || options.outWidth <= 0) return false;
 
@@ -174,9 +173,9 @@ public final class PhotoMetadataUtils {
 
             return height / width > 3;
         } finally {
-            if (parcelFileDescriptor != null) {
+            if (inputStream != null) {
                 try {
-                    parcelFileDescriptor.close();
+                    inputStream.close();
                 } catch (IOException e) {
                     //
                 }

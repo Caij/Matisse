@@ -42,6 +42,7 @@ public class PreviewItemFragment extends Fragment {
 
     private PhotoView mPhotoView;
     private BigImageView mBigImageView;
+    private AsyncTask asyncTask;
 
     public static PreviewItemFragment newInstance(Item item) {
         PreviewItemFragment fragment = new PreviewItemFragment();
@@ -91,12 +92,14 @@ public class PreviewItemFragment extends Fragment {
             mBigImageView.setVisibility(View.GONE);
             mPhotoView.setVisibility(View.VISIBLE);
         } else {
-            new AsyncTask<Void, Void, Boolean>(){
+            asyncTask = new AsyncTask<Void, Void, Boolean>(){
 
                 @Override
                 protected Boolean doInBackground(Void... voids) {
                     try {
-                        return PhotoMetadataUtils.isLongImage(getActivity(), item.uri);
+                        if (getActivity() != null) {
+                            return PhotoMetadataUtils.isLongImage(getActivity(), item.uri);
+                        }
                     } catch (FileNotFoundException e) {
                         e.printStackTrace();
                     }
@@ -106,12 +109,14 @@ public class PreviewItemFragment extends Fragment {
                 @Override
                 protected void onPostExecute(Boolean aBoolean) {
                     super.onPostExecute(aBoolean);
-                    if (aBoolean) {
-                        mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_TOP_CROP);
-                    }else {
-                        mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_CENTER_INSIDE);
+                    if (!isCancelled()) {
+                        if (aBoolean) {
+                            mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_TOP_CROP);
+                        } else {
+                            mBigImageView.setInitScaleType(BigImageView.INIT_SCALE_TYPE_CENTER_INSIDE);
+                        }
+                        mBigImageView.setImage(item.uri);
                     }
-                    mBigImageView.setImage(item.uri);
                 }
             }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);
             mBigImageView.setVisibility(View.VISIBLE);
@@ -127,5 +132,8 @@ public class PreviewItemFragment extends Fragment {
     public void onDestroyView() {
         super.onDestroyView();
         mBigImageView.recycle();
+        if (asyncTask != null) {
+            asyncTask.cancel(true);
+        }
     }
 }

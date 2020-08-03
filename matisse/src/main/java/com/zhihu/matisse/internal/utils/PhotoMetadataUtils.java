@@ -157,21 +157,23 @@ public final class PhotoMetadataUtils {
         try {
             inputStream =
                     context.getContentResolver().openInputStream(path);
-            BitmapFactory.decodeStream(inputStream, null, options);
+            if (inputStream != null) {
+                BitmapFactory.decodeStream(inputStream, null, options);
 
-            if (options.outHeight <= 0 || options.outWidth <= 0) return false;
+                if (options.outHeight <= 0 || options.outWidth <= 0) return false;
 
-            int width;
-            int height;
-            if (shouldRotate(context, path)) {
-                width = options.outHeight;
-                height = options.outWidth;
-            }else {
-                width = options.outWidth;
-                height = options.outHeight;
+                int width;
+                int height;
+                if (shouldRotate(context, path)) {
+                    width = options.outHeight;
+                    height = options.outWidth;
+                }else {
+                    width = options.outWidth;
+                    height = options.outHeight;
+                }
+
+                return height / width > 3;
             }
-
-            return height / width > 3;
         } finally {
             if (inputStream != null) {
                 try {
@@ -181,6 +183,6 @@ public final class PhotoMetadataUtils {
                 }
             }
         }
-
+        return false;
     }
 }

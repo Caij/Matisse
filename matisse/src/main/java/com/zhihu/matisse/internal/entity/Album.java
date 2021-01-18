@@ -93,8 +93,4 @@ public class Album implements Parcelable {
         return itemSize == 0;
     }
 
-    public void addCaptureCount() {
-
-    }
-
 }

@@ -53,7 +53,7 @@ public class AlbumsSpinner {
 
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-                AlbumsSpinner.this.onItemSelected(parent.getContext(), position);
+                AlbumsSpinner.this.setSelectionInner(parent.getContext(), position);
                 if (mOnItemSelectedListener != null) {
                     mOnItemSelectedListener.onItemSelected(parent, view, position, id);
                 }
@@ -65,14 +65,37 @@ public class AlbumsSpinner {
         mOnItemSelectedListener = listener;
     }
 
-    public void setSelection(Context context, int position) {
+
+    private void setSelectionInner(Context context, int position) {
         mListPopupWindow.setSelection(position);
-        onItemSelected(context, position);
+        onItemSelected(context, mAdapter.getItem(position));
     }
 
-    private void onItemSelected(Context context, int position) {
+    public Album setSelection(Context context, Album album) {
+        int position = getSelectPosition(album);
+        if (position != -1) {
+            mListPopupWindow.setSelection(position);
+            onItemSelected(context, album);
+        } else {
+            album = mAdapter.getItem(0);
+            mListPopupWindow.setSelection(0);
+            onItemSelected(context, album);
+        }
+        return album;
+    }
+
+    private int getSelectPosition(Album album) {
+        for (int i = 0; i < mAdapter.getCount(); i++) {
+            Album a = mAdapter.getItem(i);
+            if (a.getId().equals(album.getId())) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private void onItemSelected(Context context, Album album) {
         mListPopupWindow.dismiss();
-        Album album = mAdapter.getItem(position);
         String displayName = album.getDisplayName(context);
         if (mSelected.getVisibility() == View.VISIBLE) {
             mSelected.setText(displayName);

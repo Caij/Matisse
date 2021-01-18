@@ -255,7 +255,6 @@ public class MatisseActivity extends AppCompatActivity implements
     protected void onDestroy() {
         super.onDestroy();
         mAlbumCollection.onDestroy();
-        MediaLoaderV2.clearCache();
     }
 
     @Override
@@ -364,11 +363,8 @@ public class MatisseActivity extends AppCompatActivity implements
 
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-        mAlbumCollection.setStateCurrentSelection(position);
         Album album = mAlbumsAdapter.getItem(position);
-        if (album.isAll() && mSpec.capture) {
-            album.addCaptureCount();
-        }
+        mAlbumCollection.setStateCurrentSelection(album);
         onAlbumSelected(album);
     }
 
@@ -388,12 +384,12 @@ public class MatisseActivity extends AppCompatActivity implements
 
             @Override
             public void run() {
-                mAlbumsSpinner.setSelection(MatisseActivity.this,
-                        mAlbumCollection.getCurrentSelection());
-                Album album = data.get(mAlbumCollection.getCurrentSelection());
-                if (album.isAll() && mSpec.capture) {
-                    album.addCaptureCount();
+                Album album = mAlbumCollection.getCurrentSelection();
+                if (album == null) {
+                    album = mAlbumsAdapter.getItem(0);
                 }
+                album = mAlbumsSpinner.setSelection(MatisseActivity.this, album);
+
                 if (!isInitAlbum) {
                     onAlbumSelected(album);
                 }
@@ -438,6 +434,7 @@ public class MatisseActivity extends AppCompatActivity implements
         Intent intent = new Intent(this, AlbumPreviewActivity.class);
         intent.putExtra(AlbumPreviewActivity.EXTRA_ALBUM, album);
         intent.putExtra(AlbumPreviewActivity.EXTRA_ITEM, item);
+        intent.putExtra(AlbumPreviewActivity.EXTRA_POSITION, adapterPosition);
         intent.putExtra(BasePreviewActivity.EXTRA_DEFAULT_BUNDLE, mSelectedCollection.getDataWithBundle());
         intent.putExtra(BasePreviewActivity.EXTRA_RESULT_SOURCE, mCbSource.isChecked());
         mSpec.createIntent(intent);

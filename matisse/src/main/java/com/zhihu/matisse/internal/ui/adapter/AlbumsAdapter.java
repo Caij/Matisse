@@ -17,23 +17,18 @@ package com.zhihu.matisse.internal.ui.adapter;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.database.Cursor;
 import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.BaseAdapter;
-import android.widget.CursorAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.zhihu.matisse.Matisse;
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
-import com.zhihu.matisse.internal.entity.SelectionSpec;
 
-import java.io.File;
 import java.util.List;
 
 public class AlbumsAdapter extends BaseAdapter {

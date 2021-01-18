@@ -26,6 +26,7 @@ import android.text.TextUtils;
 
 import com.zhihu.matisse.MimeType;
 import com.zhihu.matisse.internal.loader.AlbumLoaderV2;
+import com.zhihu.matisse.internal.utils.TypeUtil;
 
 public class Item implements Parcelable {
 
@@ -106,30 +107,15 @@ public class Item implements Parcelable {
     }
 
     public boolean isImage() {
-        if (mimeType == null) return false;
-        return mimeType.equals(MimeType.JPEG.toString())
-                || mimeType.equals(MimeType.PNG.toString())
-                || mimeType.equals(MimeType.GIF.toString())
-                || mimeType.equals(MimeType.BMP.toString())
-                || mimeType.equals(MimeType.WEBP.toString());
+        return TypeUtil.isImage(mimeType);
     }
 
     public boolean isGif() {
-        if (mimeType == null) return false;
-        return mimeType.equals(MimeType.GIF.toString());
+        return TypeUtil.isGif(mimeType);
     }
 
     public boolean isVideo() {
-        if (mimeType == null) return false;
-        return mimeType.equals(MimeType.MPEG.toString())
-                || mimeType.equals(MimeType.MP4.toString())
-                || mimeType.equals(MimeType.QUICKTIME.toString())
-                || mimeType.equals(MimeType.THREEGPP.toString())
-                || mimeType.equals(MimeType.THREEGPP2.toString())
-                || mimeType.equals(MimeType.MKV.toString())
-                || mimeType.equals(MimeType.WEBM.toString())
-                || mimeType.equals(MimeType.TS.toString())
-                || mimeType.equals(MimeType.AVI.toString());
+        return TypeUtil.isVideo(mimeType);
     }
 
     public Uri getUri() {

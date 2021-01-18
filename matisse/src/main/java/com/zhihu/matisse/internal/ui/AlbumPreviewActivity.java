@@ -35,6 +35,7 @@ public class AlbumPreviewActivity extends BasePreviewActivity implements Callbac
 
     public static final String EXTRA_ALBUM = "extra_album";
     public static final String EXTRA_ITEM = "extra_item";
+    public static final String EXTRA_POSITION = "extra_position";
 
 
     private boolean mIsAlreadySetPosition;
@@ -62,8 +63,10 @@ public class AlbumPreviewActivity extends BasePreviewActivity implements Callbac
             mCheckView.setChecked(mSelectedCollection.isSelected(item));
         }
 
-        mediaLoaderV2 = MediaLoaderV2.newInstance(this, type, album.getId(), this);
-        mediaLoaderV2.startLoad();
+        int position = getIntent().getIntExtra(EXTRA_POSITION, 0);
+
+        mediaLoaderV2 = MediaLoaderV2.newInstance(this, type, album.getId(), position, this);
+        mediaLoaderV2.refresh();
     }
 
     @Override

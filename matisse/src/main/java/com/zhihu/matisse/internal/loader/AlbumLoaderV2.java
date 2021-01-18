@@ -3,12 +3,15 @@ package com.zhihu.matisse.internal.loader;
 import android.annotation.SuppressLint;
 import android.content.ContentResolver;
 import android.content.ContentUris;
+import android.content.ContentValues;
 import android.content.Context;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -16,13 +19,15 @@ import androidx.collection.LongSparseArray;
 import androidx.core.content.ContentResolverCompat;
 import androidx.core.os.CancellationSignal;
 
+import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
+import com.zhihu.matisse.internal.entity.AppAlbum;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
 
-public class AlbumLoaderV2 {
+public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
 
     public static final int TYPE_ONLYSHOWIMAGES = 1;
     public static final int TYPE_ONLYSHOWVIDEOS = 2;
@@ -66,16 +71,35 @@ public class AlbumLoaderV2 {
 //    private static final String BUCKET_ORDER_BY = MediaStore.MediaColumns.DATE_TAKEN + " DESC";
 
     static {
+        BUCKET_ORDER_BY_PAGE = getOrder(PAGE_SIZE);
+    }
+
+    private static String getOrder(int pageSize) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            BUCKET_ORDER_BY_PAGE = MediaStore.MediaColumns.DATE_ADDED + " DESC limit " + PAGE_SIZE + " offset %d";
+            return MediaStore.MediaColumns.DATE_ADDED + " DESC limit " + pageSize + " offset %d";
         } else {
-            BUCKET_ORDER_BY_PAGE = MediaStore.MediaColumns.DATE_TAKEN + " DESC limit " + PAGE_SIZE + " offset %d";
+            return MediaStore.MediaColumns.DATE_TAKEN + " DESC limit " + pageSize + " offset %d";
         }
     }
 
     public static AlbumLoaderV2 newInstance(Context context, int type, Callback<List<Album>> albumCallback) {
-        String selection;
-        String[] selectionArgs;
+        return new AlbumLoaderV2(context, type, albumCallback);
+    }
+
+
+    private AsyncTask<Void, Void, List<Album>> asyncTask;
+    private Callback<List<Album>> callback;
+    private int type;
+    private Context context;
+    String selection;
+    String[] selectionArgs;
+
+    public AlbumLoaderV2(@NonNull Context context, int type,
+                         Callback<List<Album>> callback) {
+        this.callback = callback;
+        this.type = type;
+        this.context = context;
+
         if (type == TYPE_ONLYSHOWIMAGES) {
             selection = SELECTION_FOR_SINGLE_MEDIA_TYPE;
             selectionArgs = getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE);
@@ -86,150 +110,136 @@ public class AlbumLoaderV2 {
             selection = SELECTION;
             selectionArgs = SELECTION_ARGS;
         }
-        return new AlbumLoaderV2(context, selection, selectionArgs, albumCallback);
-    }
 
-
-    private ContentResolver contentResolver;
-    private String selection;
-    private  String[] selectionArgs;
-    private CancellationSignal cancellationSignal;
-    private AsyncTask<Void, Void, List<Album>> asyncTask;
-    private Callback<List<Album>> callback;
-
-    public AlbumLoaderV2(@NonNull Context context, String selection, String[] selectionArgs,
-                         Callback<List<Album>> callback) {
-        contentResolver = context.getContentResolver();
-        this.selection = selection;
-        this.selectionArgs = selectionArgs;
-        this.callback = callback;
+        AppAlbumLoader.getInstance().addListener(this);
     }
 
     //开始先分页加载
     @SuppressLint("StaticFieldLeak")
-    public void startLoad() {
+    public void load() {
         if (asyncTask != null) asyncTask.cancel(true);
         asyncTask = new AsyncTask<Void, Void, List<Album>>() {
 
             @Override
             protected List<Album> doInBackground(Void... voids) {
-                LongSparseArray<Album> tempMap = new LongSparseArray<>();
-                List<Album> allAlbums = new ArrayList<>();
-                int size = loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, 0), tempMap, allAlbums);
-
+                List<AppAlbum> allAlbums = AppAlbumLoader.getAllAppAlbum(context);
+                List<Album> albums = new ArrayList<>();
                 if (!allAlbums.isEmpty()) {
-                    allAlbums.get(0).itemSize = size;
+                    for (AppAlbum appAlbum : allAlbums) {
+                        Album album = null;
+                        if (type == TYPE_ONLYSHOWIMAGES) {
+                            int imageSize = getAlbumMediaCount(appAlbum.getId());
+                            if (imageSize > 0) {
+                                album = new Album(appAlbum.getId(), getAlbumCover(appAlbum.getId()),
+                                        appAlbum.getDisplayName());
+                                album.itemSize = imageSize;
+                            }
+                        } else if (type == TYPE_ONLYSHOWVIDEOS) {
+                            int videoSize = getAlbumMediaCount(appAlbum.getId());
+                            if (videoSize > 0) {
+                                album = new Album(appAlbum.getId(), getAlbumCover(appAlbum.getId()),
+                                        appAlbum.getDisplayName());
+                                album.itemSize = videoSize;
+                            }
+                        } else {
+                            album = new Album(appAlbum.getId(), getAlbumCover(appAlbum.getId()),
+                                    appAlbum.getDisplayName());
+                            album.itemSize = getAlbumMediaCount(appAlbum.getId());
+                        }
+                        if (album != null) {
+                            albums.add(album);
+                        }
+                    }
+                } else {
+                    Album album = new Album(Album.ALBUM_ID_ALL, getAlbumCover(null), context.getString(R.string.album_name_all));
+                    album.itemSize = getAlbumMediaCount(null);
+                    albums.add(album);
                 }
-
-                return allAlbums;
+                return albums;
             }
 
             @Override
             protected void onPostExecute(List<Album> albums) {
                 super.onPostExecute(albums);
-                callback.onResult(albums);
-
-                if (!albums.isEmpty()) {
-                    if (albums.get(0).itemSize >= (PAGE_SIZE * 0.9f)) {
-                        loadAll();
-                    }
+                if (!isCancelled()) {
+                    callback.onResult(albums);
                 }
             }
         }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);;
     }
 
-    @SuppressLint("StaticFieldLeak")
-    private void loadAll() {
-        if (asyncTask != null) asyncTask.cancel(true);
-        asyncTask = new AsyncTask<Void, Void, List<Album>>() {
-
-            @Override
-            protected List<Album> doInBackground(Void... voids) {
-                int offset = 0;
-                int size = 0;
-                List<Album> allAlbums = new ArrayList<>();
-                LongSparseArray<Album> tempMap = new LongSparseArray<>();
-                int allItemCount = 0;
-                do{
-                    size = loadInBackground(String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset),
-                            tempMap, allAlbums);
-                    offset += size;
-                    allItemCount += size;
-                } while (size > 0);
-
-                if (!allAlbums.isEmpty()) {
-                    allAlbums.get(0).itemSize = allItemCount;
-                }
-
-                return allAlbums;
-            }
-
-            @Override
-            protected void onPostExecute(List<Album> albums) {
-                super.onPostExecute(albums);
-                callback.onResult(albums);
-
-            }
-        }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);
-    }
-
-    private int loadInBackground(String orderBy, LongSparseArray<Album> tempMap, List<Album> albums) {
-        int size = 0;
-        synchronized (this) {
-            cancellationSignal = new CancellationSignal();
+    private Uri getAlbumCover(String bucket_id) {
+        String selection = null;
+        String[] sargs = null;
+        if (!TextUtils.isEmpty(bucket_id) && !bucket_id.equals(Album.ALBUM_ID_ALL)) {
+            selection = this.selection +  " AND bucket_id = ?";
+            sargs = new String[selectionArgs.length + 1];
+            System.arraycopy(selectionArgs, 0, sargs, 0, selectionArgs.length);
+            sargs[sargs.length - 1] = bucket_id;
+        } else {
+            selection = this.selection;
+            sargs = selectionArgs;
         }
+
+        Uri uri = null;
         Cursor cursor = null;
-        Log.d(TAG, "order by " + orderBy);
         try {
-            cursor = ContentResolverCompat.query(contentResolver, QUERY_URI, PROJECTION, selection, selectionArgs,
-                            orderBy, cancellationSignal);
+            cursor = context.getContentResolver().query(QUERY_URI, PROJECTION, selection, sargs, String.format(getOrder(1), 0));
+
             if (cursor != null) {
-                size = cursor.getCount();
-                while (cursor.moveToNext()) {
-//                    Item item = Item.valueOf(cursor);
+                if (cursor.moveToNext()) {
                     long id = cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID));
-                    long bucketId = cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns.BUCKET_ID));
-                    Uri uri = ContentUris.withAppendedId(MediaStore.Files.getContentUri("external"), id);
-                    Album album = tempMap.get(bucketId);
-                    if (album == null) {
-                        String bucketDisplayName = cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.BUCKET_DISPLAY_NAME));
-                        album = new Album(String.valueOf(bucketId), uri, bucketDisplayName);
-
-                        if (albums.isEmpty()) {
-                            Album all = new Album(Album.ALBUM_ID_ALL, uri, Album.ALBUM_NAME_ALL);
-                            albums.add(all);
-                        }
-
-                        albums.add(album);
-
-                        tempMap.put(bucketId, album);
-                    }
-
-                    album.itemSize = album.itemSize + 1;
+                    uri = ContentUris.withAppendedId(MediaStore.Files.getContentUri("external"), id);
                 }
-            }
-
-            if (albums.isEmpty()) {
-                Album all = new Album(Album.ALBUM_ID_ALL, null, Album.ALBUM_NAME_ALL);
-                albums.add(all);
             }
         } finally {
-            synchronized (this) {
-                cancellationSignal = null;
-            }
             if (cursor != null) {
                 cursor.close();
             }
         }
-        return size;
+        return uri;
+    }
+
+    private int getAlbumMediaCount(String bucket_id) {
+        final String[] imageCountProjection = new String[]{
+                "count(" + MediaStore.Files.FileColumns._ID + ")",
+        };
+
+        String selection = null;
+        String[] sargs = null;
+        if (!TextUtils.isEmpty(bucket_id) && !bucket_id.equals(Album.ALBUM_ID_ALL)) {
+           selection = this.selection +  " AND bucket_id = ?";
+           sargs = new String[selectionArgs.length + 1];
+           System.arraycopy(selectionArgs, 0, sargs, 0, selectionArgs.length);
+           sargs[sargs.length - 1] = bucket_id;
+        } else {
+            selection = this.selection;
+            sargs = selectionArgs;
+        }
+
+        Cursor countCursor = null;
+        try {
+            countCursor = context.getContentResolver().query(QUERY_URI,
+                    imageCountProjection,
+                    selection,
+                    sargs,
+                    String.format(getOrder(1), 0));
+            countCursor.moveToFirst();
+            return countCursor.getInt(0);
+        } finally {
+            if (countCursor != null) {
+                countCursor.close();
+            }
+        }
     }
 
     public void cancelLoadInBackground() {
         if (asyncTask != null) asyncTask.cancel(true);
-        synchronized (this) {
-            if (cancellationSignal != null) {
-                cancellationSignal.cancel();
-            }
-        }
+        AppAlbumLoader.getInstance().removeListener(this);
+    }
+
+    @Override
+    public void onFinish() {
+        load();
     }
 }

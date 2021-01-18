@@ -16,15 +16,16 @@
 package com.zhihu.matisse.internal.ui;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.os.Bundle;
 
+import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.StaggeredGridLayoutManager;
 
-import android.os.Parcelable;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -48,6 +49,10 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
 
     public static final String EXTRA_ALBUM = "extra_album";
 
+    public static final int STATE_NORMAL = 1;
+    public static final int STATE_LOADING = 2;
+    public static final int STATE_UNABLE = 3;
+
     private RecyclerView mRecyclerView;
     private AlbumMediaAdapter mAdapter;
     private SelectionProvider mSelectionProvider;
@@ -55,6 +60,7 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
     private AlbumMediaAdapter.OnMediaClickListener mOnMediaClickListener;
     private MediaLoaderV2 mediaLoaderV2;
     private Album album;
+    private int mState = STATE_NORMAL;
 
     public static MediaSelectionFragment newInstance(Album album) {
         MediaSelectionFragment fragment = new MediaSelectionFragment();
@@ -120,10 +126,54 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
         mRecyclerView.setAdapter(mAdapter);
         int type = TypeUtil.getShowType(selectionSpec);
 
+        mRecyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+            }
 
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
 
-        mediaLoaderV2 = MediaLoaderV2.newInstance(getActivity(), type, album.getId(), this);
-        mediaLoaderV2.startLoad();
+                RecyclerView.LayoutManager layoutManager = mRecyclerView.getLayoutManager();
+                final int totalItemCount = layoutManager.getItemCount();
+                int lastVisibleItemPosition = 0;
+
+                if (layoutManager instanceof LinearLayoutManager) {
+                    LinearLayoutManager linearLayoutManager = (LinearLayoutManager) layoutManager;
+                    lastVisibleItemPosition = linearLayoutManager.findLastVisibleItemPosition();
+                } else if (layoutManager instanceof StaggeredGridLayoutManager) {
+                    StaggeredGridLayoutManager staggeredGridLayoutManager = (StaggeredGridLayoutManager) layoutManager;
+                    int[] into = new int[staggeredGridLayoutManager.getSpanCount()];
+                    ((StaggeredGridLayoutManager) layoutManager).findLastVisibleItemPositions(into);
+                    lastVisibleItemPosition = findMax(into);
+                }
+
+                if (lastVisibleItemPosition >= totalItemCount - 1
+                        && mState == STATE_NORMAL) {
+                    mState = STATE_LOADING;
+                    onLoadMore();
+                }
+            }
+        });
+
+        mediaLoaderV2 = MediaLoaderV2.newInstance(getActivity(), type, album.getId(), 0, this);
+        mediaLoaderV2.refresh();
+    }
+
+    private void onLoadMore() {
+        mediaLoaderV2.loadMore();
+    }
+
+    private static int findMax(int[] lastPositions) {
+        int max = lastPositions[0];
+        for (int value : lastPositions) {
+            if (value > max) {
+                max = value;
+            }
+        }
+        return max;
     }
 
     @Override
@@ -159,6 +209,7 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
     public void onResult(List<Item> items) {
         mAdapter.setItems(items);
         mAdapter.notifyDataSetChanged();
+        mState = STATE_NORMAL;
     }
 
     public interface SelectionProvider {

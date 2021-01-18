@@ -36,7 +36,7 @@ public class AlbumCollection implements Callback<List<Album>> {
     private static final String ARGS_TYPE = "args_type";
     private WeakReference<Context> mContext;
     private AlbumCallbacks mCallbacks;
-    private int mCurrentSelection;
+    private Album mCurrentSelection;
     private AlbumLoaderV2 albumLoaderV2;
 
 
@@ -70,11 +70,11 @@ public class AlbumCollection implements Callback<List<Album>> {
             return;
         }
 
-        mCurrentSelection = savedInstanceState.getInt(STATE_CURRENT_SELECTION);
+        mCurrentSelection = savedInstanceState.getParcelable(STATE_CURRENT_SELECTION);
     }
 
     public void onSaveInstanceState(Bundle outState) {
-        outState.putInt(STATE_CURRENT_SELECTION, mCurrentSelection);
+        outState.putParcelable(STATE_CURRENT_SELECTION, mCurrentSelection);
     }
 
     public void onDestroy() {
@@ -86,14 +86,14 @@ public class AlbumCollection implements Callback<List<Album>> {
         Bundle bundle = new Bundle();
         bundle.putInt(ARGS_TYPE, type);
         albumLoaderV2 = onCreateLoader(type, bundle);
-        albumLoaderV2.startLoad();
+        albumLoaderV2.load();
     }
 
-    public int getCurrentSelection() {
+    public Album getCurrentSelection() {
         return mCurrentSelection;
     }
 
-    public void setStateCurrentSelection(int currentSelection) {
+    public void setStateCurrentSelection(Album currentSelection) {
         mCurrentSelection = currentSelection;
     }
 

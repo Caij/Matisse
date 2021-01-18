@@ -40,6 +40,7 @@ import com.zhihu.matisse.internal.entity.CaptureStrategy;
 import com.zhihu.matisse.internal.entity.Item;
 import com.zhihu.matisse.internal.entity.Source;
 import com.zhihu.matisse.internal.entity.Theme;
+import com.zhihu.matisse.internal.loader.AppAlbumLoader;
 
 import java.util.List;
 
@@ -60,6 +61,7 @@ public class SampleActivity extends AppCompatActivity implements View.OnClickLis
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         Matisse.init(new GlideEngine());
+        AppAlbumLoader.getInstance().preLoad(getApplicationContext());
         setContentView(R.layout.activity_main);
         findViewById(R.id.zhihu).setOnClickListener(this);
         findViewById(R.id.dracula).setOnClickListener(this);

@@ -33,7 +33,7 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
     public static final int TYPE_ONLYSHOWVIDEOS = 2;
     public static final int TYPE_ALL = 3;
 
-    private static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
+    public static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
 
 
     public static final String[] PROJECTION = {
@@ -42,25 +42,25 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
             MediaStore.MediaColumns.BUCKET_DISPLAY_NAME};
 
     // === params for showSingleMediaType: false ===
-    private static final String SELECTION =
+    public static final String SELECTION =
             "(" + MediaStore.Files.FileColumns.MEDIA_TYPE + "=?"
                     + " OR "
                     + MediaStore.Files.FileColumns.MEDIA_TYPE + "=?)"
                     + " AND " + MediaStore.MediaColumns.SIZE + ">0";
 
-    private static final String[] SELECTION_ARGS = {
+    public static final String[] SELECTION_ARGS = {
             String.valueOf(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE),
             String.valueOf(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO),
     };
     // =============================================
 
     // === params for showSingleMediaType: true ===
-    private static final String SELECTION_FOR_SINGLE_MEDIA_TYPE =
+    public static final String SELECTION_FOR_SINGLE_MEDIA_TYPE =
             MediaStore.Files.FileColumns.MEDIA_TYPE + "=?"
                     + " AND " + MediaStore.MediaColumns.SIZE + ">0";
     private static final String TAG = "AlbumLoaderV2";
 
-    private static String[] getSelectionArgsForSingleMediaType(int mediaType) {
+    public static String[] getSelectionArgsForSingleMediaType(int mediaType) {
         return new String[]{String.valueOf(mediaType)};
     }
     // =============================================
@@ -74,7 +74,7 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
         BUCKET_ORDER_BY_PAGE = getOrder(PAGE_SIZE);
     }
 
-    private static String getOrder(int pageSize) {
+    public static String getOrder(int pageSize) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             return MediaStore.MediaColumns.DATE_ADDED + " DESC limit " + pageSize + " offset %d";
         } else {
@@ -87,7 +87,7 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
     }
 
 
-    private AsyncTask<Void, Void, List<Album>> asyncTask;
+    private AsyncTask asyncTask;
     private Callback<List<Album>> callback;
     private int type;
     private Context context;
@@ -128,33 +128,35 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
                     for (AppAlbum appAlbum : allAlbums) {
                         Album album = null;
                         if (type == TYPE_ONLYSHOWIMAGES) {
-                            int imageSize = getAlbumMediaCount(appAlbum.getId());
-                            if (imageSize > 0) {
-                                album = new Album(appAlbum.getId(), getAlbumCover(appAlbum.getId()),
-                                        appAlbum.getDisplayName());
-                                album.itemSize = imageSize;
+                            if (appAlbum.imageCount > 0) {
+                                album = new Album(appAlbum.id, getAlbumCover(appAlbum.id),
+                                        appAlbum.displayName);
+                                album.itemSize = appAlbum.imageCount;
                             }
                         } else if (type == TYPE_ONLYSHOWVIDEOS) {
-                            int videoSize = getAlbumMediaCount(appAlbum.getId());
-                            if (videoSize > 0) {
-                                album = new Album(appAlbum.getId(), getAlbumCover(appAlbum.getId()),
-                                        appAlbum.getDisplayName());
-                                album.itemSize = videoSize;
+                            if (appAlbum.videoCount > 0) {
+                                album = new Album(appAlbum.id, getAlbumCover(appAlbum.id),
+                                        appAlbum.displayName);
+                                album.itemSize = appAlbum.videoCount;
                             }
                         } else {
-                            album = new Album(appAlbum.getId(), getAlbumCover(appAlbum.getId()),
-                                    appAlbum.getDisplayName());
-                            album.itemSize = getAlbumMediaCount(appAlbum.getId());
+                            album = new Album(appAlbum.id, getAlbumCover(appAlbum.id),
+                                    appAlbum.displayName);
+                            album.itemSize = appAlbum.videoCount + appAlbum.imageCount;
                         }
+
                         if (album != null) {
                             albums.add(album);
                         }
                     }
+
                 } else {
                     Album album = new Album(Album.ALBUM_ID_ALL, getAlbumCover(null), context.getString(R.string.album_name_all));
-                    album.itemSize = getAlbumMediaCount(null);
                     albums.add(album);
                 }
+
+                asyncGetCount(albums);
+
                 return albums;
             }
 
@@ -166,6 +168,27 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
                 }
             }
         }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);;
+    }
+
+    private void asyncGetCount(final List<Album> albums) {
+        asyncTask = new AsyncTask<Void, Void, Integer>() {
+
+            @Override
+            protected Integer doInBackground(Void... voids) {
+                for (Album album : albums) {
+                    album.itemSize = getAlbumMediaCount(album.getId());
+                }
+                return null;
+            }
+
+            @Override
+            protected void onPostExecute(Integer integer) {
+                super.onPostExecute(integer);
+                if (!isCancelled()) {
+                    callback.onResult(albums);
+                }
+            }
+        }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);
     }
 
     private Uri getAlbumCover(String bucket_id) {
@@ -201,40 +224,12 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
     }
 
     private int getAlbumMediaCount(String bucket_id) {
-        final String[] imageCountProjection = new String[]{
-                "count(" + MediaStore.Files.FileColumns._ID + ")",
-        };
-
-        String selection = null;
-        String[] sargs = null;
-        if (!TextUtils.isEmpty(bucket_id) && !bucket_id.equals(Album.ALBUM_ID_ALL)) {
-           selection = this.selection +  " AND bucket_id = ?";
-           sargs = new String[selectionArgs.length + 1];
-           System.arraycopy(selectionArgs, 0, sargs, 0, selectionArgs.length);
-           sargs[sargs.length - 1] = bucket_id;
-        } else {
-            selection = this.selection;
-            sargs = selectionArgs;
-        }
-
-        Cursor countCursor = null;
-        try {
-            countCursor = context.getContentResolver().query(QUERY_URI,
-                    imageCountProjection,
-                    selection,
-                    sargs,
-                    String.format(getOrder(1), 0));
-            countCursor.moveToFirst();
-            return countCursor.getInt(0);
-        } finally {
-            if (countCursor != null) {
-                countCursor.close();
-            }
-        }
+        return AppAlbumLoader.getAlbumMediaCount(bucket_id, context, selection, selectionArgs);
     }
 
     public void cancelLoadInBackground() {
         if (asyncTask != null) asyncTask.cancel(true);
+
         AppAlbumLoader.getInstance().removeListener(this);
     }
 

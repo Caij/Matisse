@@ -98,7 +98,6 @@ public class MatisseActivity extends AppCompatActivity implements
     private TextView mButtonPreview;
     private TextView mButtonApply;
     private View mContainer;
-    private View mEmptyView;
     private AppCompatCheckBox mCbSource;
     private TextView tvCapture;
     private boolean isInitAlbum;
@@ -152,7 +151,6 @@ public class MatisseActivity extends AppCompatActivity implements
         mButtonPreview.setOnClickListener(this);
         mButtonApply.setOnClickListener(this);
         mContainer = findViewById(R.id.container);
-        mEmptyView = findViewById(R.id.empty_view);
 
         mSelectedCollection.onCreate(savedInstanceState);
 
@@ -405,18 +403,12 @@ public class MatisseActivity extends AppCompatActivity implements
     }
 
     private void onAlbumSelected(Album album) {
-        if (album.isAll() && album.isEmpty()) {
-            mContainer.setVisibility(View.GONE);
-            mEmptyView.setVisibility(View.VISIBLE);
-        } else {
-            mContainer.setVisibility(View.VISIBLE);
-            mEmptyView.setVisibility(View.GONE);
-            Fragment fragment = MediaSelectionFragment.newInstance(album);
-            getSupportFragmentManager()
-                    .beginTransaction()
-                    .replace(R.id.container, fragment, MediaSelectionFragment.class.getSimpleName())
-                    .commitAllowingStateLoss();
-        }
+        mContainer.setVisibility(View.VISIBLE);
+        Fragment fragment = MediaSelectionFragment.newInstance(album);
+        getSupportFragmentManager()
+                .beginTransaction()
+                .replace(R.id.container, fragment, MediaSelectionFragment.class.getSimpleName())
+                .commitAllowingStateLoss();
     }
 
     @Override

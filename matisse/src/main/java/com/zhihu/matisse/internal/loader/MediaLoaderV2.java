@@ -7,6 +7,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.provider.MediaStore;
+import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
@@ -16,6 +17,7 @@ import androidx.core.os.CancellationSignal;
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
@@ -167,13 +169,14 @@ public class MediaLoaderV2 {
     private final String selection;
     private final String[] selectionArgs;
     private CancellationSignal cancellationSignal;
-    private AsyncTask<Void, Void, List<Item>> asyncTask;
+    private AsyncTask asyncTask;
     private Callback<List<Item>> callback;
     private  List<Item> allItems = new ArrayList<>();
 
     private boolean isHadMore;
-
     private int startPosition;
+
+    private int offset;
 
     public MediaLoaderV2(@NonNull Context context, String selection, String[] selectionArgs,
                          Callback<List<Item>> callback, int position) {
@@ -186,25 +189,32 @@ public class MediaLoaderV2 {
     }
 
     public void refresh() {
-        asyncTask = new AsyncTask<Void, Void, List<Item>>() {
+        int left = startPosition - PAGE_SIZE / 2;
+        if (left < 0) {
+            left = 0;
+        }
+
+        final int finalLeft = left;
+        asyncTask = new AsyncTask<Void, Void, Object[]>() {
 
             @Override
-            protected List<Item> doInBackground(Void... voids) {
-                int left = startPosition - PAGE_SIZE / 2;
-                if (left < 0) {
-                    left = 0;
-                }
-                List<Item> items = query(left);
-                return items;
+            protected Object[] doInBackground(Void... voids) {
+                Object[] values = query(finalLeft);
+                return values;
             }
 
             @Override
-            protected void onPostExecute(List<Item> items) {
-                super.onPostExecute(items);
+            protected void onPostExecute(Object[] values) {
+                super.onPostExecute(values);
+                List<Item> items = (List<Item>) values[0];
+                int size = (int)values[1];
+                offset = finalLeft + size;
+
                 allItems.clear();
                 allItems.addAll(items);
+                isHadMore = size > 0;
+
                 callback.onResult(allItems);
-                isHadMore = !items.isEmpty();
             }
         }.executeOnExecutor(THREAD_POOL_EXECUTOR);
     }
@@ -212,39 +222,56 @@ public class MediaLoaderV2 {
     public void loadMore() {
         if (isHadMore) {
             Log.d(TAG, "load more");
-            asyncTask = new AsyncTask<Void, Void, List<Item>>() {
+            asyncTask = new AsyncTask<Void, Void, Object[]>() {
 
                 @Override
-                protected List<Item> doInBackground(Void... voids) {
-                    List<Item> items = query(allItems.size());
-                    return items;
+                protected Object[] doInBackground(Void... voids) {
+                    Object[] values = query(offset);
+                    return values;
                 }
 
                 @Override
-                protected void onPostExecute(List<Item> items) {
-                    super.onPostExecute(items);
+                protected void onPostExecute(Object[] values) {
+                    super.onPostExecute(values);
+                    List<Item> items = (List<Item>) values[0];
+                    int size = (int)values[1];
+                    offset = offset + size;
+
+                    int start = allItems.size();
                     allItems.addAll(items);
-                    callback.onResult(allItems);
-                    isHadMore = !items.isEmpty();
+                    isHadMore = size > 0;
+
+                    if (items.size() > 0) {
+                        callback.onLoadMore(start, items.size());
+                    }
                 }
             }.executeOnExecutor(THREAD_POOL_EXECUTOR);
         }
     }
 
-    public List<Item> query(int offset) {
+    public Object[] query(int offset) {
         synchronized (this) {
             cancellationSignal = new CancellationSignal();
         }
         List<Item> allItems = new ArrayList<>();
         String orderBy = String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset);
         Cursor cursor = null;
+        int size = 0;
         try {
             cursor = ContentResolverCompat.query(contentResolver, QUERY_URI, PROJECTION, selection, selectionArgs,
                     orderBy, cancellationSignal);
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     Item item = Item.valueOf(cursor);
-                    allItems.add(item);
+                    if (!TextUtils.isEmpty(item.path)) {
+                        File file = new File(item.path);
+                        if (file.exists()) {
+                            allItems.add(item);
+                        }
+                    } else {
+                        allItems.add(item);
+                    }
+                    size ++;
                 }
             }
         } finally {
@@ -255,7 +282,8 @@ public class MediaLoaderV2 {
                 cursor.close();
             }
         }
-        return allItems;
+
+        return new Object[] {allItems, size};
     }
 
     public void cancelLoadInBackground() {
@@ -265,5 +293,12 @@ public class MediaLoaderV2 {
                 cancellationSignal.cancel();
             }
         }
+    }
+
+    public interface Callback<T> {
+
+        void onResult(T t);
+
+        void onLoadMore(int start, int size);
     }
 }

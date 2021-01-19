@@ -27,52 +27,22 @@ import java.util.Locale;
 
 public class AppAlbumLoader {
 
-    private static class Holder {
-        private static AppAlbumLoader appAlbumLoader = new AppAlbumLoader();
-    }
-
-    private static final Uri QUERY_URI = MediaStore.Files.getContentUri("external");
-
+    private static final String TAG = "AppAlbumLoader";
 
     public static final String[] PROJECTION = {
             MediaStore.MediaColumns.BUCKET_ID,
             MediaStore.MediaColumns.BUCKET_DISPLAY_NAME};
 
-    // === params for showSingleMediaType: false ===
-    private static final String SELECTION =
-            "(" + MediaStore.Files.FileColumns.MEDIA_TYPE + "=?"
-                    + " OR "
-                    + MediaStore.Files.FileColumns.MEDIA_TYPE + "=?)"
-                    + " AND " + MediaStore.MediaColumns.SIZE + ">0";
-
-    private static final String[] SELECTION_ARGS = {
-            String.valueOf(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE),
-            String.valueOf(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO),
-    };
-    // =============================================
-
-    // === params for showSingleMediaType: true ===
-    private static final String SELECTION_FOR_SINGLE_MEDIA_TYPE =
-            MediaStore.Files.FileColumns.MEDIA_TYPE + "=?"
-                    + " AND " + MediaStore.MediaColumns.SIZE + ">0";
-    private static final String TAG = "AlbumLoaderV2";
-
-    private static final int PAGE_SIZE = 500;
-
-    private static final String BUCKET_ORDER_BY_PAGE;
-
-    public List<Listener> listeners = new ArrayList<>();
-
-    static {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            BUCKET_ORDER_BY_PAGE = MediaStore.MediaColumns.DATE_ADDED + " DESC limit " + PAGE_SIZE + " offset %d";
-        } else {
-            BUCKET_ORDER_BY_PAGE = MediaStore.MediaColumns.DATE_TAKEN + " DESC limit " + PAGE_SIZE + " offset %d";
-        }
+    private static class Holder {
+        private static AppAlbumLoader appAlbumLoader = new AppAlbumLoader();
     }
 
     private String selection;
     private  String[] selectionArgs;
+    private String BUCKET_ORDER_BY_PAGE = AlbumLoaderV2.getOrder(500);
+
+    public List<Listener> listeners = new ArrayList<>();
+
     private volatile boolean isLoading = false;
 
     public static AppAlbumLoader getInstance() {
@@ -80,8 +50,8 @@ public class AppAlbumLoader {
     }
 
     private AppAlbumLoader() {
-        selection = SELECTION;
-        selectionArgs = SELECTION_ARGS;
+        selection = AlbumLoaderV2.SELECTION;
+        selectionArgs = AlbumLoaderV2.SELECTION_ARGS;
     }
 
     public void preLoad(final Context context) {
@@ -108,6 +78,12 @@ public class AppAlbumLoader {
 
                     database.execSQL("delete from AppAlbum");
                     for (AppAlbum album : allAlbums) {
+                        int imageCount = getAlbumMediaCount(album.id, context, AlbumLoaderV2.SELECTION_FOR_SINGLE_MEDIA_TYPE,
+                                AlbumLoaderV2.getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE));
+                        int videoCount = getAlbumMediaCount(album.id, context, AlbumLoaderV2.SELECTION_FOR_SINGLE_MEDIA_TYPE,
+                                AlbumLoaderV2.getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO));
+                        album.imageCount = imageCount;
+                        album.videoCount = videoCount;
                         insertAlbum(database, album);
                     }
                     database.setTransactionSuccessful();
@@ -134,7 +110,7 @@ public class AppAlbumLoader {
         Cursor cursor = null;
         Log.d(TAG, "order by " + orderBy);
         try {
-            cursor = ContentResolverCompat.query(contentResolver, QUERY_URI, PROJECTION, selection, selectionArgs,
+            cursor = ContentResolverCompat.query(contentResolver, AlbumLoaderV2.QUERY_URI, PROJECTION, selection, selectionArgs,
                     orderBy, null);
             if (cursor != null) {
                 size = cursor.getCount();
@@ -161,6 +137,7 @@ public class AppAlbumLoader {
                 AppAlbum all = new AppAlbum(Album.ALBUM_ID_ALL, context.getString(R.string.album_name_all));
                 albums.add(all);
             }
+
         } finally {
             if (cursor != null) {
                 cursor.close();
@@ -171,8 +148,10 @@ public class AppAlbumLoader {
 
     public static void insertAlbum(SQLiteDatabase database,  AppAlbum album) {
         ContentValues values = new ContentValues();
-        values.put("id", album.getId());
-        values.put("displayName", album.getDisplayName());
+        values.put("id", album.id);
+        values.put("displayName", album.displayName);
+        values.put("imageCount", album.imageCount);
+        values.put("videoCount", album.videoCount);
         database.insertWithOnConflict("AppAlbum", null, values, SQLiteDatabase.CONFLICT_REPLACE);
     }
 
@@ -184,7 +163,11 @@ public class AppAlbumLoader {
             while (cursor.moveToNext()) {
                 String id = cursor.getString(cursor.getColumnIndex("id"));
                 String displayName = cursor.getString(cursor.getColumnIndex("displayName"));
+                int imageCount = cursor.getInt(cursor.getColumnIndex("imageCount"));
+                int videoCount = cursor.getInt(cursor.getColumnIndex("videoCount"));
                 AppAlbum appAlbum = new AppAlbum(id, displayName);
+                appAlbum.imageCount = imageCount;
+                appAlbum.videoCount = videoCount;
                 appAlbums.add(appAlbum);
             }
         }
@@ -197,6 +180,42 @@ public class AppAlbumLoader {
 
     public void removeListener(Listener listener) {
         listeners.remove(listener);
+    }
+
+    public static int getAlbumMediaCount(String bucket_id, Context context, String selection,  String[] selectionArgs) {
+        String s = null;
+        String[] sargs = null;
+        if (!TextUtils.isEmpty(bucket_id) && !bucket_id.equals(Album.ALBUM_ID_ALL)) {
+            s = selection +  " AND bucket_id = ?";
+            sargs = new String[selectionArgs.length + 1];
+            System.arraycopy(selectionArgs, 0, sargs, 0, selectionArgs.length);
+            sargs[sargs.length - 1] = bucket_id;
+        } else {
+            s = selection;
+            sargs = selectionArgs;
+        }
+
+        return getAlbumMediaCount(context, s, sargs);
+    }
+
+    public static int getAlbumMediaCount(Context context, String selection, String[] sargs) {
+        final String[] imageCountProjection = new String[]{
+                "count(" + MediaStore.Files.FileColumns._ID + ")",
+        };
+
+        Cursor countCursor = null;
+        try {
+            countCursor = context.getContentResolver().query(AlbumLoaderV2.QUERY_URI,
+                    imageCountProjection,
+                    selection,
+                    sargs, null);
+            countCursor.moveToFirst();
+            return countCursor.getInt(0);
+        } finally {
+            if (countCursor != null) {
+                countCursor.close();
+            }
+        }
     }
 
     public static interface Listener {

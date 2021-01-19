@@ -15,7 +15,6 @@
  */
 package com.zhihu.matisse.internal.ui;
 
-import android.database.Cursor;
 import android.os.Bundle;
 import androidx.annotation.Nullable;
 
@@ -27,11 +26,10 @@ import com.zhihu.matisse.internal.loader.MediaLoaderV2;
 import com.zhihu.matisse.internal.ui.adapter.PreviewPagerAdapter;
 import com.zhihu.matisse.internal.utils.TypeUtil;
 
-import java.util.ArrayList;
 import java.util.List;
 
 
-public class AlbumPreviewActivity extends BasePreviewActivity implements Callback<List<Item>> {
+public class AlbumPreviewActivity extends BasePreviewActivity implements MediaLoaderV2.Callback<List<Item>> {
 
     public static final String EXTRA_ALBUM = "extra_album";
     public static final String EXTRA_ITEM = "extra_item";
@@ -39,7 +37,6 @@ public class AlbumPreviewActivity extends BasePreviewActivity implements Callbac
 
 
     private boolean mIsAlreadySetPosition;
-    private PreviewPagerAdapter adapter;
     private MediaLoaderV2 mediaLoaderV2;
 
     @Override
@@ -95,4 +92,10 @@ public class AlbumPreviewActivity extends BasePreviewActivity implements Callbac
             mPreviousPos = selectedIndex;
         }
     }
+
+    @Override
+    public void onLoadMore(int start, int size) {
+
+    }
+
 }

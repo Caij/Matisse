@@ -20,7 +20,6 @@
     <attr name="album.dropdown.count.color" format="reference|color"/>
     <attr name="album.element.color" format="reference|color"/>
     <attr name="album.thumbnail.placeholder" format="reference|color"/>
-    <attr name="album.emptyView" format="reference"/>
     <attr name="album.emptyView.textColor" format="reference|color"/>
     <attr name="listPopupWindowStyle" format="reference"/>
     <attr name="page.bg" format="reference|color"/>

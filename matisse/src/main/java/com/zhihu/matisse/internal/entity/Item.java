@@ -37,6 +37,7 @@ public class Item implements Parcelable {
     public final long size;
     public final long duration; // only for video, in ms
     public final Uri uri;
+    public String path;
 
     public Item(long id, String mimeType, long size, long duration) {
         this.id = id;
@@ -100,10 +101,12 @@ public class Item implements Parcelable {
     };
 
     public static Item valueOf(Cursor cursor) {
-        return new Item(cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID)),
+        Item item = new Item(cursor.getLong(cursor.getColumnIndex(MediaStore.Files.FileColumns._ID)),
                 cursor.getString(cursor.getColumnIndex(MediaStore.MediaColumns.MIME_TYPE)),
                 cursor.getLong(cursor.getColumnIndex(MediaStore.MediaColumns.SIZE)),
                 cursor.getLong(cursor.getColumnIndex("duration")));
+        item.path = cursor.getString(cursor.getColumnIndex(MediaStore.Images.Media.DATA));
+        return item;
     }
 
     public boolean isImage() {

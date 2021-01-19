@@ -105,26 +105,4 @@
         android:layout_above="@id/bottom_toolbar"
         android:layout_below="@id/toolbar"
         android:visibility="gone"/>
-
-    <FrameLayout
-        android:id="@+id/empty_view"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_above="@id/bottom_toolbar"
-        android:layout_below="@id/toolbar"
-        android:visibility="gone">
-
-        <TextView
-            android:id="@+id/empty_view_content"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:drawablePadding="8dp"
-            android:drawableTop="?attr/album.emptyView"
-            android:gravity="center"
-            android:text="@string/empty_text"
-            android:textColor="?attr/album.emptyView.textColor"
-            android:textSize="16sp"/>
-
-    </FrameLayout>
 </RelativeLayout>

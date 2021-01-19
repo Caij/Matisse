@@ -89,8 +89,4 @@ public class Album implements Parcelable {
         return ALBUM_ID_ALL.equals(mId);
     }
 
-    public boolean isEmpty() {
-        return itemSize == 0;
-    }
-
 }

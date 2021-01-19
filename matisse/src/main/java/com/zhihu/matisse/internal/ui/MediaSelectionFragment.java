@@ -45,7 +45,7 @@ import com.zhihu.matisse.internal.utils.UIUtils;
 import java.util.List;
 
 public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapter.CheckStateListener,
-        AlbumMediaAdapter.OnMediaClickListener, Callback<List<Item>> {
+        AlbumMediaAdapter.OnMediaClickListener, Callback<List<Item>>, MediaLoaderV2.Callback<List<Item>> {
 
     public static final String EXTRA_ALBUM = "extra_album";
 
@@ -209,6 +209,12 @@ public class MediaSelectionFragment extends Fragment implements AlbumMediaAdapte
     public void onResult(List<Item> items) {
         mAdapter.setItems(items);
         mAdapter.notifyDataSetChanged();
+        mState = STATE_NORMAL;
+    }
+
+    @Override
+    public void onLoadMore(int start, int size) {
+        mAdapter.notifyItemRangeInserted(start, size);
         mState = STATE_NORMAL;
     }
 

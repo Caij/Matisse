@@ -11,7 +11,7 @@ import androidx.annotation.Nullable;
 
 public class DBHelper extends SQLiteOpenHelper {
 
-    private static final String DB_NAME = "album_info_" + Build.VERSION.SDK_INT;
+    private static final String DB_NAME = "album_info_2_" + Build.VERSION.SDK_INT;
     private static SQLiteDatabase database;
 
     public DBHelper(@Nullable Context context) {
@@ -20,7 +20,7 @@ public class DBHelper extends SQLiteOpenHelper {
 
     @Override
     public void onCreate(SQLiteDatabase db) {
-        db.execSQL("CREATE TABLE IF NOT EXISTS `AppAlbum` (`id` TEXT NOT NULL,  `displayName` TEXT, PRIMARY KEY(`id`))");
+        db.execSQL("CREATE TABLE IF NOT EXISTS `AppAlbum` (`id` TEXT NOT NULL,  `displayName` TEXT, `imageCount` INTEGER, `videoCount` INTEGER, PRIMARY KEY(`id`))");
     }
 
     @Override

@@ -25,20 +25,14 @@ import com.zhihu.matisse.R;
 
 public class AppAlbum  {
 
-    private final String id;
-    private final String displayName;
+    public final String id;
+    public final String displayName;
+    public int imageCount;
+    public int videoCount;
 
     public AppAlbum(String id, String albumName) {
         this.id = id;
         displayName = albumName;
-    }
-
-    public String getId() {
-        return id;
-    }
-
-    public String getDisplayName() {
-        return displayName;
     }
 
 }

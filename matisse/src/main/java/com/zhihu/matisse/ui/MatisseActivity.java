@@ -210,7 +210,8 @@ public class MatisseActivity extends AppCompatActivity implements
             doNext();
         }else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE}, REQUEST_MEDIA_PERMISSION_CODE);
+                requestPermissions(new String[]{Manifest.permission.READ_EXTERNAL_STORAGE,
+                        Manifest.permission.WRITE_EXTERNAL_STORAGE}, REQUEST_MEDIA_PERMISSION_CODE);
             }
         }
     }
@@ -384,14 +385,19 @@ public class MatisseActivity extends AppCompatActivity implements
             public void run() {
                 Album album = mAlbumCollection.getCurrentSelection();
                 if (album == null) {
-                    album = mAlbumsAdapter.getItem(0);
+                    if (mAlbumsAdapter.getCount() > 0) {
+                        album = mAlbumsAdapter.getItem(0);
+                    }
                 }
-                album = mAlbumsSpinner.setSelection(MatisseActivity.this, album);
 
-                if (!isInitAlbum) {
-                    onAlbumSelected(album);
+                if (album != null) {
+                    album = mAlbumsSpinner.setSelection(MatisseActivity.this, album);
+
+                    if (!isInitAlbum) {
+                        onAlbumSelected(album);
+                    }
+                    isInitAlbum = true;
                 }
-                isInitAlbum = true;
             }
         });
     }

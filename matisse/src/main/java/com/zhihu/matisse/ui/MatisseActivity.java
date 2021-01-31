@@ -206,7 +206,8 @@ public class MatisseActivity extends AppCompatActivity implements
 
         updateBottomToolbar();
 
-        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && ContextCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
             doNext();
         }else {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {

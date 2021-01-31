@@ -1,9 +1,11 @@
 package com.zhihu.matisse.internal.loader;
 
+import android.Manifest;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
@@ -15,6 +17,7 @@ import android.util.Log;
 
 import androidx.collection.LongSparseArray;
 import androidx.core.content.ContentResolverCompat;
+import androidx.core.content.ContextCompat;
 
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
@@ -55,52 +58,55 @@ public class AppAlbumLoader {
     }
 
     public void preLoad(final Context context) {
-        if (!isLoading) {
-            new AsyncTask<Void, Void, List<Album>>() {
+        if (ContextCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE)
+                == PackageManager.PERMISSION_GRANTED) {
+            if (!isLoading) {
+                new AsyncTask<Void, Void, List<Album>>() {
 
-                @Override
-                protected List<Album> doInBackground(Void... voids) {
-                    isLoading = true;
+                    @Override
+                    protected List<Album> doInBackground(Void... voids) {
+                        isLoading = true;
 
-                    int offset = 0;
-                    int size = 0;
-                    ContentResolver contentResolver = context.getContentResolver();
-                    List<AppAlbum> allAlbums = new ArrayList<>();
-                    LongSparseArray<AppAlbum> tempMap = new LongSparseArray<>();
-                    do {
-                        size = loadInBackground(context, contentResolver, String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset),
-                                tempMap, allAlbums);
-                        offset += size;
-                    } while (size > 0);
+                        int offset = 0;
+                        int size = 0;
+                        ContentResolver contentResolver = context.getContentResolver();
+                        List<AppAlbum> allAlbums = new ArrayList<>();
+                        LongSparseArray<AppAlbum> tempMap = new LongSparseArray<>();
+                        do {
+                            size = loadInBackground(context, contentResolver, String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset),
+                                    tempMap, allAlbums);
+                            offset += size;
+                        } while (size > 0);
 
-                    SQLiteDatabase database = DBHelper.getSQLiteDatabase(context);
-                    database.beginTransaction();
+                        SQLiteDatabase database = DBHelper.getSQLiteDatabase(context);
+                        database.beginTransaction();
 
-                    database.execSQL("delete from AppAlbum");
-                    for (AppAlbum album : allAlbums) {
-                        int imageCount = getAlbumMediaCount(album.id, context, AlbumLoaderV2.SELECTION_FOR_SINGLE_MEDIA_TYPE,
-                                AlbumLoaderV2.getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE));
-                        int videoCount = getAlbumMediaCount(album.id, context, AlbumLoaderV2.SELECTION_FOR_SINGLE_MEDIA_TYPE,
-                                AlbumLoaderV2.getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO));
-                        album.imageCount = imageCount;
-                        album.videoCount = videoCount;
-                        insertAlbum(database, album);
+                        database.execSQL("delete from AppAlbum");
+                        for (AppAlbum album : allAlbums) {
+                            int imageCount = getAlbumMediaCount(album.id, context, AlbumLoaderV2.SELECTION_FOR_SINGLE_MEDIA_TYPE,
+                                    AlbumLoaderV2.getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE));
+                            int videoCount = getAlbumMediaCount(album.id, context, AlbumLoaderV2.SELECTION_FOR_SINGLE_MEDIA_TYPE,
+                                    AlbumLoaderV2.getSelectionArgsForSingleMediaType(MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO));
+                            album.imageCount = imageCount;
+                            album.videoCount = videoCount;
+                            insertAlbum(database, album);
+                        }
+                        database.setTransactionSuccessful();
+                        database.endTransaction();
+
+                        isLoading = false;
+                        return null;
                     }
-                    database.setTransactionSuccessful();
-                    database.endTransaction();
 
-                    isLoading = false;
-                    return null;
-                }
+                    @Override
+                    protected void onPostExecute(List<Album> albums) {
+                        super.onPostExecute(albums);
+                    }
 
-                @Override
-                protected void onPostExecute(List<Album> albums) {
-                    super.onPostExecute(albums);
-                }
-
-            }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);
-        } else {
-            Log.d(TAG, "loading wait");
+                }.executeOnExecutor(MediaLoaderV2.THREAD_POOL_EXECUTOR);
+            } else {
+                Log.d(TAG, "loading wait");
+            }
         }
     }
 

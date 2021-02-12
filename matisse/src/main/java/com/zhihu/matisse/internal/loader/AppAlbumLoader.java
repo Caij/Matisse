@@ -217,6 +217,8 @@ public class AppAlbumLoader {
                     sargs, null);
             countCursor.moveToFirst();
             return countCursor.getInt(0);
+        } catch (Exception e) {
+            return 0;
         } finally {
             if (countCursor != null) {
                 countCursor.close();

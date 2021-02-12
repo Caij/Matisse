@@ -104,7 +104,9 @@ public class AlbumCollection implements Callback<List<Album>> {
             return;
         }
 
-        mCallbacks.onAlbumLoad(albums);
+        if (mCallbacks != null) {
+            mCallbacks.onAlbumLoad(albums);
+        }
     }
 
     public interface AlbumCallbacks {

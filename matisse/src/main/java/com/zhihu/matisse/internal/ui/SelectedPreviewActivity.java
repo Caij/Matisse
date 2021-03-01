@@ -30,15 +30,23 @@ public class SelectedPreviewActivity extends BasePreviewActivity {
         super.onCreate(savedInstanceState);
 
         Bundle bundle = getIntent().getBundleExtra(EXTRA_DEFAULT_BUNDLE);
-        List<Item> selected = bundle.getParcelableArrayList(SelectedItemCollection.STATE_SELECTION);
-        mAdapter.addAll(selected);
-        mAdapter.notifyDataSetChanged();
-        if (mSpec.countable) {
-            mCheckView.setCheckedNum(1);
+        if (bundle != null) {
+            List<Item> selected = bundle.getParcelableArrayList(SelectedItemCollection.STATE_SELECTION);
+            if (selected != null && !selected.isEmpty()) {
+                mAdapter.addAll(selected);
+                mAdapter.notifyDataSetChanged();
+                if (mSpec.countable) {
+                    mCheckView.setCheckedNum(1);
+                } else {
+                    mCheckView.setChecked(true);
+                }
+                mPreviousPos = 0;
+            } else {
+                finish();
+            }
         } else {
-            mCheckView.setChecked(true);
+            finish();
         }
-        mPreviousPos = 0;
     }
 
 }

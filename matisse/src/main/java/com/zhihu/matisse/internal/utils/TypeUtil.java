@@ -28,7 +28,8 @@ public class TypeUtil {
                 || mimeType.equals(MimeType.PNG.toString())
                 || mimeType.equals(MimeType.GIF.toString())
                 || mimeType.equals(MimeType.BMP.toString())
-                || mimeType.equals(MimeType.WEBP.toString());
+                || mimeType.equals(MimeType.WEBP.toString())
+                || mimeType.equals(MimeType.HEIC.toString());
     }
 
     public static boolean isGif(String mimeType) {

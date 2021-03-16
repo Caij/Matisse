@@ -17,18 +17,14 @@ package com.zhihu.matisse.internal.ui.adapter;
 
 import android.content.Context;
 import android.content.res.TypedArray;
-import android.database.Cursor;
-import android.graphics.PorterDuff;
 import android.graphics.drawable.Drawable;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.TextView;
 
 import com.zhihu.matisse.R;
 import com.zhihu.matisse.internal.entity.Album;
@@ -144,26 +140,26 @@ public class AlbumMediaAdapter extends
             if (checkedNum == CheckView.UNCHECKED) {
                 if (assertAddSelection(holder.itemView.getContext(), item)) {
                     mSelectedCollection.add(item);
-                    notifyCheckStateChanged();
+                    notifyCheckStateChanged(holder.getAdapterPosition());
                 }
             } else {
                 mSelectedCollection.remove(item);
-                notifyCheckStateChanged();
+                notifyCheckStateChanged(holder.getAdapterPosition());
             }
         } else {
             if (mSelectedCollection.isSelected(item)) {
                 mSelectedCollection.remove(item);
-                notifyCheckStateChanged();
+                notifyCheckStateChanged(holder.getAdapterPosition());
             } else {
                 if (assertAddSelection(holder.itemView.getContext(), item)) {
                     mSelectedCollection.add(item);
-                    notifyCheckStateChanged();
+                    notifyCheckStateChanged(holder.getAdapterPosition());
                 }
             }
         }
     }
 
-    private void notifyCheckStateChanged() {
+    private void notifyCheckStateChanged(int adapterPosition) {
         notifyDataSetChanged();
         if (mCheckStateListener != null) {
             mCheckStateListener.onUpdate();
@@ -172,7 +168,6 @@ public class AlbumMediaAdapter extends
 
     @Override
     public int getItemViewType(int position) {
-        Item item = items.get(position);
         return VIEW_TYPE_MEDIA;
     }
 

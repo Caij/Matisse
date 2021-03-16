@@ -10,11 +10,13 @@ import android.database.sqlite.SQLiteDatabase;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.RequiresApi;
 import androidx.collection.LongSparseArray;
 import androidx.core.content.ContentResolverCompat;
 import androidx.core.os.CancellationSignal;
@@ -66,21 +68,6 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
     // =============================================
 
     private static final int PAGE_SIZE = 200;
-
-    private static final String BUCKET_ORDER_BY_PAGE;
-//    private static final String BUCKET_ORDER_BY = MediaStore.MediaColumns.DATE_TAKEN + " DESC";
-
-    static {
-        BUCKET_ORDER_BY_PAGE = getOrder(PAGE_SIZE);
-    }
-
-    public static String getOrder(int pageSize) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            return MediaStore.MediaColumns.DATE_ADDED + " DESC limit " + pageSize + " offset %d";
-        } else {
-            return MediaStore.MediaColumns.DATE_TAKEN + " DESC limit " + pageSize + " offset %d";
-        }
-    }
 
     public static AlbumLoaderV2 newInstance(Context context, int type, Callback<List<Album>> albumCallback) {
         return new AlbumLoaderV2(context, type, albumCallback);
@@ -207,7 +194,20 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
         Uri uri = null;
         Cursor cursor = null;
         try {
-            cursor = context.getContentResolver().query(QUERY_URI, PROJECTION, selection, sargs, String.format(getOrder(1), 0));
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                String order = MediaStore.MediaColumns.DATE_ADDED + " DESC";
+                Bundle bundle = createQueryArgsBundle(selection, sargs, 1, 0, order);
+                cursor = context.getContentResolver().query(QUERY_URI, PROJECTION, bundle, null);
+            } else {
+                String order;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    order = MediaStore.MediaColumns.DATE_ADDED + " DESC";
+                } else {
+                    order = "datetaken DESC";
+                }
+                order = order + " limit 1 offset 0";
+                cursor = context.getContentResolver().query(QUERY_URI, PROJECTION, selection, sargs, order);
+            }
 
             if (cursor != null) {
                 if (cursor.moveToNext()) {
@@ -236,5 +236,26 @@ public class AlbumLoaderV2 implements AppAlbumLoader.Listener {
     @Override
     public void onFinish() {
         load();
+    }
+
+    /**
+     * R  createQueryArgsBundle
+     *
+     * @param selection
+     * @param selectionArgs
+     * @param limitCount
+     * @param offset
+     * @return
+     */
+    @RequiresApi(api = Build.VERSION_CODES.R)
+    public static Bundle createQueryArgsBundle(String selection, String[] selectionArgs, int limitCount, int offset, String order) {
+        Bundle queryArgs = new Bundle();
+        queryArgs.putString(ContentResolver.QUERY_ARG_SQL_SELECTION, selection);
+        queryArgs.putStringArray(ContentResolver.QUERY_ARG_SQL_SELECTION_ARGS, selectionArgs);
+        queryArgs.putString(ContentResolver.QUERY_ARG_SQL_SORT_ORDER, order);
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            queryArgs.putString(ContentResolver.QUERY_ARG_SQL_LIMIT, limitCount + " offset " + offset);
+        }
+        return queryArgs;
     }
 }

@@ -6,13 +6,13 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.CancellationSignal;
 import android.provider.MediaStore;
 import android.text.TextUtils;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
-import androidx.core.content.ContentResolverCompat;
-import androidx.core.os.CancellationSignal;
 
 import com.zhihu.matisse.internal.entity.Album;
 import com.zhihu.matisse.internal.entity.Item;
@@ -20,7 +20,6 @@ import com.zhihu.matisse.internal.entity.Item;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Locale;
 import java.util.concurrent.Executor;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ThreadFactory;
@@ -102,17 +101,6 @@ public class MediaLoaderV2 {
 
     private static final int PAGE_SIZE = 100;
 
-    private static final String BUCKET_ORDER_BY_PAGE;
-//    private static final String BUCKET_ORDER_BY = MediaStore.MediaColumns.DATE_TAKEN + " DESC";
-
-    static {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            BUCKET_ORDER_BY_PAGE = MediaStore.MediaColumns.DATE_ADDED + " DESC limit " + PAGE_SIZE + " offset %d";
-        } else {
-            BUCKET_ORDER_BY_PAGE = MediaStore.MediaColumns.DATE_TAKEN + " DESC limit " + PAGE_SIZE + " offset %d";
-        }
-    }
-
     public static MediaLoaderV2 newInstance(Context context, int type, String bucketId, int position, Callback<List<Item>> albumCallback) {
         String selection;
         String[] selectionArgs;
@@ -168,7 +156,7 @@ public class MediaLoaderV2 {
     private final ContentResolver contentResolver;
     private final String selection;
     private final String[] selectionArgs;
-    private CancellationSignal cancellationSignal;
+    private android.os.CancellationSignal cancellationSignal;
     private AsyncTask asyncTask;
     private Callback<List<Item>> callback;
     private  List<Item> allItems = new ArrayList<>();
@@ -254,12 +242,23 @@ public class MediaLoaderV2 {
             cancellationSignal = new CancellationSignal();
         }
         List<Item> allItems = new ArrayList<>();
-        String orderBy = String.format(Locale.getDefault(), BUCKET_ORDER_BY_PAGE, offset);
         Cursor cursor = null;
         int size = 0;
         try {
-            cursor = ContentResolverCompat.query(contentResolver, QUERY_URI, PROJECTION, selection, selectionArgs,
-                    orderBy, cancellationSignal);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                String order = MediaStore.MediaColumns.DATE_ADDED + " DESC";
+                Bundle bundle = AlbumLoaderV2.createQueryArgsBundle(selection, selectionArgs, PAGE_SIZE, offset, order);
+                cursor = contentResolver.query(QUERY_URI, PROJECTION, bundle, cancellationSignal);
+            } else {
+                String order;
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    order = MediaStore.MediaColumns.DATE_ADDED + " DESC";
+                } else {
+                    order = "datetaken DESC";
+                }
+                order = order + " limit " + PAGE_SIZE + " offset " + offset;
+                cursor = contentResolver.query(QUERY_URI, PROJECTION, selection, selectionArgs, order, cancellationSignal);
+            }
             if (cursor != null) {
                 while (cursor.moveToNext()) {
                     Item item = Item.valueOf(cursor);
